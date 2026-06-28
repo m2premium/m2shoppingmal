@@ -1,0 +1,6 @@
+{
+  "name": "M2 Shopping Mall Market Console",
+  "description": "An interactive digital market hub. Features three-in-one console including Customer storefront with guest booking, Wholesaler panel with supply submissions, and Admin cockpit with inline pricing valuation and dispatch approvals.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
