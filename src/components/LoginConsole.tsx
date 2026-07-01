@@ -5,9 +5,10 @@ import { UserRole, WholesalerSession, WholesalerCode } from '../types';
 interface LoginConsoleProps {
   onLogin: (role: UserRole, wholesalerData?: WholesalerSession) => void;
   wholesalerCodes: WholesalerCode[];
+  isOnline?: boolean;
 }
 
-export default function LoginConsole({ onLogin, wholesalerCodes }: LoginConsoleProps) {
+export default function LoginConsole({ onLogin, wholesalerCodes, isOnline }: LoginConsoleProps) {
   const [activeTab, setActiveTab] = useState<UserRole>('guest');
   
   // Wholesaler Inputs
@@ -96,13 +97,22 @@ export default function LoginConsole({ onLogin, wholesalerCodes }: LoginConsoleP
         {/* Left Side: Branding and Hero */}
         <div id="login-brand-sidebar" className="md:col-span-5 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-8 text-white flex flex-col justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-md mb-8">
-              <Store className="w-5 h-5 text-indigo-400" />
-              <span className="text-xs font-mono font-semibold tracking-wider uppercase">M2-MARKET</span>
+            <div className="flex flex-wrap items-center gap-2 mb-8">
+              <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-md">
+                <Store className="w-5 h-5 text-indigo-400" />
+                <span className="text-xs font-mono font-semibold tracking-wider uppercase">M2-MARKET</span>
+              </div>
+              
+              {isOnline !== undefined && (
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase backdrop-blur-md ${isOnline ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+                  <span>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+                </div>
+              )}
             </div>
             
             <h1 className="text-3xl font-bold tracking-tight mb-4">
-              The Shopping Mall Market Hub
+              M2-Shopping-Mall Market
             </h1>
             <p className="text-slate-300 text-sm leading-relaxed">
               An all-in-one digital ecosystem. Browse live products, list wholesale supplies for admin valuation, or supervise operations as site administrator.
@@ -325,16 +335,9 @@ export default function LoginConsole({ onLogin, wholesalerCodes }: LoginConsoleP
                     required
                     value={adminCode}
                     onChange={(e) => setAdminCode(e.target.value)}
-                    placeholder="Enter default code..."
+                    placeholder="Enter authorization code..."
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm bg-slate-50/50 font-mono tracking-widest"
                   />
-                  <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
-                    <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Default Code: </span>
-                    <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600 font-semibold text-[10px]">
-                      m2-admin-001
-                    </code>
-                  </div>
                 </div>
               </div>
 

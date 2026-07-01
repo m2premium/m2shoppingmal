@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   ShieldCheck, 
   Clock, 
@@ -18,10 +18,20 @@ import {
   Copy,
   Check,
   RefreshCw,
-  Upload
+  Upload,
+  Database,
+  Download,
+  Lock,
+  Unlock,
+  FileText,
+  AlertTriangle,
+  History
 } from 'lucide-react';
 import { Product, Order, WholesalerCode } from '../types';
 import OrderDispatchVisualizer from './OrderDispatchVisualizer';
+import { db } from '../lib/firebase';
+import { collection, onSnapshot, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { encryptData, decryptData } from '../lib/crypto';
 
 // Beautiful stock photo presets for easy listing
 const IMAGE_PRESETS = [
@@ -65,7 +75,219 @@ export default function AdminControl({
   onUpdateProduct
 }: AdminControlProps) {
   // Admin tabs
-  const [activeSubTab, setActiveSubTab] = useState<'supplies' | 'orders' | 'inventory' | 'codes'>('supplies');
+  const [activeSubTab, setActiveSubTab] = useState<'supplies' | 'orders' | 'inventory' | 'codes' | 'backup'>('supplies');
+
+  // --- Backup & Export States ---
+  const [backupFormat, setBackupFormat] = useState<'json' | 'encrypted'>('encrypted');
+  const [backupPassword, setBackupPassword] = useState('M2-MALL-MASTER-SECURE-KEY');
+  
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
+  const [restorePassword, setRestorePassword] = useState('M2-MALL-MASTER-SECURE-KEY');
+  const [restorePreview, setRestorePreview] = useState<any | null>(null);
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [restoreSuccess, setRestoreSuccess] = useState<string | null>(null);
+  
+  const [cloudBackups, setCloudBackups] = useState<any[]>([]);
+  const [isLoadingCloudBackups, setIsLoadingCloudBackups] = useState(false);
+  const [cloudBackupStatus, setCloudBackupStatus] = useState<string | null>(null);
+
+  // Real-time Cloud Backups sync
+  useEffect(() => {
+    if (activeSubTab !== 'backup') return;
+
+    setIsLoadingCloudBackups(true);
+    const unsub = onSnapshot(collection(db, 'auto_backups'), (snapshot) => {
+      const list: any[] = [];
+      snapshot.forEach((doc) => {
+        list.push(doc.data());
+      });
+      list.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setCloudBackups(list);
+      setIsLoadingCloudBackups(false);
+    }, (err) => {
+      console.error("Cloud backups sync error:", err);
+      setIsLoadingCloudBackups(false);
+    });
+
+    return () => unsub();
+  }, [activeSubTab]);
+
+  // Download Backup Archive File handler
+  const handleDownloadBackupFile = () => {
+    const ledgerData = {
+      products,
+      orders,
+      wholesalerCodes,
+      backedUpAt: new Date().toISOString()
+    };
+
+    let fileContent = "";
+    let filename = "";
+
+    if (backupFormat === 'json') {
+      fileContent = JSON.stringify(ledgerData, null, 2);
+      filename = `m2_ledger_backup_${new Date().toISOString().split('T')[0]}.json`;
+    } else {
+      fileContent = encryptData(ledgerData, backupPassword);
+      filename = `m2_ledger_backup_${new Date().toISOString().split('T')[0]}.m2backup`;
+    }
+
+    const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Restore payload writer helper
+  const handleRestorePayload = async (payload: any) => {
+    if (payload.products && Array.isArray(payload.products)) {
+      for (const p of payload.products) {
+        await setDoc(doc(db, 'products', p.id), p);
+      }
+    }
+    if (payload.orders && Array.isArray(payload.orders)) {
+      for (const o of payload.orders) {
+        await setDoc(doc(db, 'orders', o.id), o);
+      }
+    }
+    if (payload.wholesalerCodes && Array.isArray(payload.wholesalerCodes)) {
+      for (const c of payload.wholesalerCodes) {
+        await setDoc(doc(db, 'wholesalerCodes', c.code), c);
+      }
+    }
+  };
+
+  // Trigger manual cloud snapshot
+  const handleTriggerCloudBackup = async () => {
+    setCloudBackupStatus("Creating backup snapshot...");
+    try {
+      const ledgerData = {
+        products,
+        orders,
+        wholesalerCodes,
+        backedUpAt: new Date().toISOString()
+      };
+
+      const encryptedPayload = encryptData(ledgerData);
+      const backupId = `manual-backup-${Date.now()}`;
+      const backupDoc = {
+        id: backupId,
+        timestamp: new Date().toISOString(),
+        encryptedData: encryptedPayload,
+        summary: `Products: ${products.length}, Orders: ${orders.length}, Codes: ${wholesalerCodes.length}`,
+        isAuto: false
+      };
+
+      await setDoc(doc(db, 'auto_backups', backupId), backupDoc);
+      setCloudBackupStatus("Snapshot successfully uploaded to Cloud!");
+      setTimeout(() => setCloudBackupStatus(null), 3000);
+    } catch (err) {
+      console.error(err);
+      setCloudBackupStatus("Backup failed: " + (err instanceof Error ? err.message : "Unknown error"));
+    }
+  };
+
+  // Restore database from selected cloud snapshot
+  const handleRestoreFromSnapshot = async (backup: any) => {
+    if (!window.confirm(`Are you sure you want to restore the database to this snapshot (${backup.id})?\nThis will update matching records.`)) {
+      return;
+    }
+    setCloudBackupStatus("Decrypting and restoring snapshot...");
+    try {
+      const decrypted = decryptData(backup.encryptedData);
+      await handleRestorePayload(decrypted);
+      setCloudBackupStatus("Database restored successfully!");
+      setTimeout(() => setCloudBackupStatus(null), 3000);
+    } catch (err) {
+      console.error(err);
+      setCloudBackupStatus("Restore failed: " + (err instanceof Error ? err.message : "Invalid key or corrupted data"));
+    }
+  };
+
+  // Delete cloud snapshot
+  const handleDeleteSnapshot = async (backupId: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this backup snapshot from the cloud?")) {
+      return;
+    }
+    try {
+      await deleteDoc(doc(db, 'auto_backups', backupId));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Handle selected restore file
+  const handleRestoreFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setRestoreFile(file);
+    setRestoreError(null);
+    setRestorePreview(null);
+    setRestoreSuccess(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      
+      if (file.name.endsWith('.json')) {
+        try {
+          const parsed = JSON.parse(content);
+          if (parsed.products && parsed.orders) {
+            setRestorePreview(parsed);
+            setRestoreSuccess("JSON file successfully verified!");
+          } else {
+            setRestoreError("Invalid JSON ledger file structure. Missing products or orders.");
+          }
+        } catch (err) {
+          setRestoreError("Failed to parse JSON file.");
+        }
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // Validate and decrypt file upload
+  const handleValidateAndDecrypt = () => {
+    if (!restoreFile) return;
+    setRestoreError(null);
+    setRestorePreview(null);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      try {
+        const decrypted = decryptData(content, restorePassword);
+        if (decrypted.products && decrypted.orders) {
+          setRestorePreview(decrypted);
+          setRestoreSuccess("Backup file successfully decrypted and verified!");
+        } else {
+          setRestoreError("Decrypted structure is invalid. Missing products or orders.");
+        }
+      } catch (err) {
+        setRestoreError(err instanceof Error ? err.message : "Incorrect password or corrupted file.");
+      }
+    };
+    reader.readAsText(restoreFile);
+  };
+
+  // Execute restore of file payload
+  const handleExecuteRestore = async () => {
+    if (!restorePreview) return;
+    try {
+      setCloudBackupStatus("Restoring database tables...");
+      await handleRestorePayload(restorePreview);
+      setRestoreSuccess("All ledger database tables restored successfully!");
+      setRestoreFile(null);
+      setRestorePreview(null);
+      setTimeout(() => setCloudBackupStatus(null), 3000);
+    } catch (err) {
+      setRestoreError("Restore action failed: " + (err instanceof Error ? err.message : "Unknown error"));
+    }
+  };
 
   // Refresh feedback states
   const [isSpinning, setIsSpinning] = useState(false);
@@ -459,6 +681,19 @@ export default function AdminControl({
                 {wholesalerCodes.length}
               </span>
             )}
+          </button>
+
+          <button
+            id="subtab-backup-btn"
+            onClick={() => setActiveSubTab('backup')}
+            className={`py-3 px-6 font-semibold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
+              activeSubTab === 'backup'
+                ? 'border-indigo-600 text-indigo-600'
+                : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <Database className="w-4 h-4" />
+            <span>Backup & Export</span>
           </button>
         </div>
 
@@ -1124,6 +1359,327 @@ export default function AdminControl({
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* --- Subtab: Backup & Export --- */}
+        {activeSubTab === 'backup' && (
+          <div id="backup-deck" className="space-y-6">
+            <div className="space-y-1">
+              <h3 className="text-xl font-bold text-slate-900">Ledger Database Backup & Export</h3>
+              <p className="text-sm text-slate-500">
+                Safeguard the integrity of your M2 Shopping Mall records. Manually export raw or encrypted archives, upload previous checkpoints, or view automatically synced daily cloud snapshots.
+              </p>
+            </div>
+
+            {/* Cloud Backup status banner */}
+            {cloudBackupStatus && (
+              <div className="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-2xl text-xs font-semibold flex items-center gap-2 animate-pulse">
+                <RefreshCw className="w-4 h-4 animate-spin text-indigo-600" />
+                <span>{cloudBackupStatus}</span>
+              </div>
+            )}
+
+            <div className="grid md:grid-cols-2 gap-6">
+              
+              {/* Left Column: Local Manual Archiving */}
+              <div className="space-y-6">
+                
+                {/* Export Card */}
+                <div className="bg-white p-6 rounded-3xl border border-slate-150 shadow-sm space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                    <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                      <Download className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">Download Ledger Backup</h4>
+                      <p className="text-[11px] text-slate-400 font-medium">Export current products, orders, and codes archive</p>
+                    </div>
+                  </div>
+
+                  {/* Format Selector */}
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      Export Archive Format
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setBackupFormat('encrypted')}
+                        className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                          backupFormat === 'encrypted'
+                            ? 'bg-indigo-50/50 border-indigo-200 text-indigo-700 font-semibold'
+                            : 'bg-white border-slate-200 text-slate-600'
+                        }`}
+                      >
+                        <Lock className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Encrypted (.m2backup)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBackupFormat('json')}
+                        className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                          backupFormat === 'json'
+                            ? 'bg-slate-50 border-slate-200 text-slate-700'
+                            : 'bg-white border-slate-200 text-slate-600'
+                        }`}
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>Plain JSON (.json)</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Encryption Password */}
+                  {backupFormat === 'encrypted' && (
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                          Backup Encryption Password
+                        </label>
+                        <span className="text-[9px] text-amber-600 font-semibold">Recommended</span>
+                      </div>
+                      <input
+                        type="password"
+                        value={backupPassword}
+                        onChange={(e) => setBackupPassword(e.target.value)}
+                        placeholder="Enter secure password"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs font-mono bg-slate-50/50"
+                      />
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleDownloadBackupFile}
+                    className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Ledger Archive File</span>
+                  </button>
+                </div>
+
+                {/* Import/Restore Card */}
+                <div className="bg-white p-6 rounded-3xl border border-slate-150 shadow-sm space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
+                    <div className="p-2 bg-slate-50 text-slate-700 rounded-xl border border-slate-100">
+                      <Upload className="w-5 h-5 text-indigo-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">Upload & Restore Archive</h4>
+                      <p className="text-[11px] text-slate-400 font-medium">Overwrites or updates existing records</p>
+                    </div>
+                  </div>
+
+                  {/* File Upload Area */}
+                  <div className="space-y-3">
+                    <div className="border-2 border-dashed border-slate-200 hover:border-indigo-500 rounded-2xl p-4 text-center cursor-pointer hover:bg-slate-50/30 transition-all">
+                      <input
+                        type="file"
+                        accept=".json,.m2backup"
+                        onChange={handleRestoreFileChange}
+                        className="hidden"
+                        id="restore-file-input"
+                      />
+                      <label htmlFor="restore-file-input" className="cursor-pointer block">
+                        <Upload className="w-6 h-6 text-indigo-500 mx-auto mb-1" />
+                        <span className="text-xs font-semibold text-indigo-600 block">
+                          {restoreFile ? restoreFile.name : 'Click to select backup file'}
+                        </span>
+                        <span className="text-[9px] text-slate-400 block mt-0.5">
+                          Supports .json or encrypted .m2backup archives
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* If selected file is encrypted .m2backup, request password */}
+                    {restoreFile && restoreFile.name.endsWith('.m2backup') && !restorePreview && (
+                      <div className="space-y-2 bg-slate-50/50 p-3 rounded-2xl border border-slate-100">
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                          Decryption Password
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="password"
+                            value={restorePassword}
+                            onChange={(e) => setRestorePassword(e.target.value)}
+                            placeholder="Enter password to decrypt"
+                            className="flex-1 px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs font-mono bg-white"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleValidateAndDecrypt}
+                            className="px-3 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl cursor-pointer"
+                          >
+                            Decrypt
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Feedback Messages */}
+                    {restoreError && (
+                      <div className="bg-red-50 text-red-700 p-3 rounded-2xl text-[11px] font-medium flex items-center gap-1.5 border border-red-100">
+                        <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                        <span>{restoreError}</span>
+                      </div>
+                    )}
+
+                    {restoreSuccess && (
+                      <div className="bg-emerald-50 text-emerald-800 p-3 rounded-2xl text-[11px] font-medium flex items-center gap-1.5 border border-emerald-100">
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>{restoreSuccess}</span>
+                      </div>
+                    )}
+
+                    {/* Preview Table of Records to import */}
+                    {restorePreview && (
+                      <div className="bg-slate-50 border border-slate-150 p-4 rounded-2xl space-y-3">
+                        <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                          Ready to Restore Ledger Data:
+                        </p>
+                        <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                          <div className="bg-white p-2 rounded-xl border border-slate-100">
+                            <span className="block font-bold text-indigo-700">{restorePreview.products?.length || 0}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Products</span>
+                          </div>
+                          <div className="bg-white p-2 rounded-xl border border-slate-100">
+                            <span className="block font-bold text-emerald-700">{restorePreview.orders?.length || 0}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Orders</span>
+                          </div>
+                          <div className="bg-white p-2 rounded-xl border border-slate-100">
+                            <span className="block font-bold text-slate-700">{restorePreview.wholesalerCodes?.length || 0}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Codes</span>
+                          </div>
+                        </div>
+
+                        <div className="bg-amber-50 text-amber-800 border border-amber-200/60 p-3 rounded-xl text-[10px] leading-relaxed flex items-start gap-1.5 font-medium">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                          <span>
+                            <strong>Warning:</strong> Restoring will apply these records to your ledger databases. Matching IDs will be updated.
+                          </span>
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRestoreFile(null);
+                              setRestorePreview(null);
+                              setRestoreSuccess(null);
+                              setRestoreError(null);
+                            }}
+                            className="flex-1 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold rounded-xl cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleExecuteRestore}
+                            className="flex-1 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl cursor-pointer"
+                          >
+                            Execute Restore
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Automated Cloud Snapshots */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-150 shadow-sm space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
+                      <History className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">Cloud Daily Snapshots</h4>
+                      <p className="text-[11px] text-slate-400 font-medium">Encrypted snapshots in cloud database</p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleTriggerCloudBackup}
+                    className="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Trigger Now</span>
+                  </button>
+                </div>
+
+                {isLoadingCloudBackups ? (
+                  <div className="py-12 text-center text-xs text-slate-400 space-y-2">
+                    <RefreshCw className="w-6 h-6 text-slate-300 animate-spin mx-auto" />
+                    <span>Loading snapshots from cloud...</span>
+                  </div>
+                ) : cloudBackups.length === 0 ? (
+                  <div className="py-16 text-center text-slate-400 border border-dashed border-slate-200 rounded-2xl p-4 space-y-2">
+                    <History className="w-8 h-8 text-slate-300 mx-auto" />
+                    <p className="text-xs font-semibold text-slate-500">No Snapshot Found</p>
+                    <p className="text-[10px] text-slate-400">Daily automatic push checks run on app startup.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 overflow-y-auto max-h-[420px] pr-1">
+                    {cloudBackups.map((backup) => (
+                      <div
+                        id={`snapshot-${backup.id}`}
+                        key={backup.id}
+                        className="p-3.5 bg-slate-50/70 hover:bg-slate-50 border border-slate-150 rounded-2xl flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between transition-all"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                              backup.isAuto 
+                                ? 'bg-indigo-100 text-indigo-800' 
+                                : 'bg-emerald-100 text-emerald-800'
+                            }`}>
+                              {backup.isAuto ? 'AUTO' : 'MANUAL'}
+                            </span>
+                            <span className="text-xs font-bold text-slate-800">
+                              {new Date(backup.timestamp).toLocaleDateString(undefined, {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                          
+                          <p className="text-[10px] text-slate-500 font-medium">
+                            {backup.summary}
+                          </p>
+                          <p className="text-[9px] text-slate-400 font-mono font-medium">
+                            {backup.id}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-2 w-full sm:w-auto self-stretch sm:self-center">
+                          <button
+                            type="button"
+                            onClick={() => handleRestoreFromSnapshot(backup)}
+                            className="flex-1 sm:flex-initial py-1.5 px-3 bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-semibold rounded-xl transition-all cursor-pointer text-center animate-scale-in"
+                          >
+                            Restore
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSnapshot(backup.id)}
+                            className="py-1.5 px-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-all border border-red-100 cursor-pointer"
+                            title="Delete snapshot"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
             </div>
           </div>
         )}

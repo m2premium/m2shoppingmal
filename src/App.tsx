@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, ShieldCheck, User, Store, ShoppingBag, Terminal } from 'lucide-react';
+import { LogOut, ShieldCheck, User, Store, ShoppingBag, Terminal, Wifi, WifiOff } from 'lucide-react';
 import { Product, Order, UserRole, WholesalerSession, OrderItem, WholesalerCode } from './types';
 import { INITIAL_PRODUCTS, INITIAL_ORDERS } from './data/initialProducts';
 import LoginConsole from './components/LoginConsole';
 import UserStorefront from './components/UserStorefront';
 import WholesalerPanel from './components/WholesalerPanel';
 import AdminControl from './components/AdminControl';
+import { db } from './lib/firebase';
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  deleteDoc, 
+  onSnapshot, 
+  getDocs, 
+  writeBatch 
+} from 'firebase/firestore';
 
 const INITIAL_CODES: WholesalerCode[] = [
   { code: 'M2-WS-PREMIUM', companyName: 'M2 Premium Supplies', createdAt: new Date().toISOString(), isActive: true },
@@ -22,32 +32,54 @@ export default function App() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [wholesalerCodes, setWholesalerCodes] = useState<WholesalerCode[]>([]);
 
-  // Load and seed initial states
+  // Connection State
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+
+  // Seeding function if Firestore collections are empty
+  const seedDatabaseIfEmpty = async () => {
+    try {
+      // Products
+      const productsSnapshot = await getDocs(collection(db, 'products'));
+      if (productsSnapshot.empty) {
+        const batch = writeBatch(db);
+        INITIAL_PRODUCTS.forEach((p) => {
+          batch.set(doc(db, 'products', p.id), p);
+        });
+        await batch.commit();
+      }
+
+      // Orders
+      const ordersSnapshot = await getDocs(collection(db, 'orders'));
+      if (ordersSnapshot.empty) {
+        const batch = writeBatch(db);
+        INITIAL_ORDERS.forEach((o) => {
+          batch.set(doc(db, 'orders', o.id), o);
+        });
+        await batch.commit();
+      }
+
+      // Codes
+      const codesSnapshot = await getDocs(collection(db, 'wholesalerCodes'));
+      if (codesSnapshot.empty) {
+        const batch = writeBatch(db);
+        INITIAL_CODES.forEach((c) => {
+          batch.set(doc(db, 'wholesalerCodes', c.code), c);
+        });
+        await batch.commit();
+      }
+    } catch (err) {
+      console.warn("Seeding or offline load check failed:", err);
+    }
+  };
+
+  // Load, seed and listen in real-time
   useEffect(() => {
-    const storedProducts = localStorage.getItem('m2_market_products');
-    const storedOrders = localStorage.getItem('m2_market_orders');
-    const storedCodes = localStorage.getItem('m2_wholesaler_codes');
+    // Online/Offline listeners
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
-    if (storedProducts) {
-      setProducts(JSON.parse(storedProducts));
-    } else {
-      setProducts(INITIAL_PRODUCTS);
-      localStorage.setItem('m2_market_products', JSON.stringify(INITIAL_PRODUCTS));
-    }
-
-    if (storedOrders) {
-      setOrders(JSON.parse(storedOrders));
-    } else {
-      setOrders(INITIAL_ORDERS);
-      localStorage.setItem('m2_market_orders', JSON.stringify(INITIAL_ORDERS));
-    }
-
-    if (storedCodes) {
-      setWholesalerCodes(JSON.parse(storedCodes));
-    } else {
-      setWholesalerCodes(INITIAL_CODES);
-      localStorage.setItem('m2_wholesaler_codes', JSON.stringify(INITIAL_CODES));
-    }
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
     // Recover session role if user refreshed
     const savedRole = sessionStorage.getItem('m2_market_role') as UserRole;
@@ -60,23 +92,110 @@ export default function App() {
         }
       }
     }
+
+    let unsubProducts: (() => void) | undefined;
+    let unsubOrders: (() => void) | undefined;
+    let unsubCodes: (() => void) | undefined;
+
+    const initFirebase = async () => {
+      // Run bootstrapping check (will use IndexedDB local Cache if offline)
+      await seedDatabaseIfEmpty();
+
+      // Setup offline-first listeners
+      unsubProducts = onSnapshot(collection(db, 'products'), (snapshot) => {
+        const list: Product[] = [];
+        snapshot.forEach((doc) => {
+          list.push(doc.data() as Product);
+        });
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setProducts(list);
+      }, (err) => {
+        console.warn("Products onSnapshot warning:", err);
+      });
+
+      unsubOrders = onSnapshot(collection(db, 'orders'), (snapshot) => {
+        const list: Order[] = [];
+        snapshot.forEach((doc) => {
+          list.push(doc.data() as Order);
+        });
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setOrders(list);
+      }, (err) => {
+        console.warn("Orders onSnapshot warning:", err);
+      });
+
+      unsubCodes = onSnapshot(collection(db, 'wholesalerCodes'), (snapshot) => {
+        const list: WholesalerCode[] = [];
+        snapshot.forEach((doc) => {
+          list.push(doc.data() as WholesalerCode);
+        });
+        list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        setWholesalerCodes(list);
+      }, (err) => {
+        console.warn("Codes onSnapshot warning:", err);
+      });
+    };
+
+    initFirebase();
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      if (unsubProducts) unsubProducts();
+      if (unsubOrders) unsubOrders();
+      if (unsubCodes) unsubCodes();
+    };
   }, []);
 
-  // Sync helpers
-  const syncProducts = (updated: Product[]) => {
-    setProducts(updated);
-    localStorage.setItem('m2_market_products', JSON.stringify(updated));
-  };
+  // Automatic daily cloud backup snapshot trigger
+  useEffect(() => {
+    if (!isOnline) return;
+    if (products.length === 0 && orders.length === 0 && wholesalerCodes.length === 0) return;
 
-  const syncOrders = (updated: Order[]) => {
-    setOrders(updated);
-    localStorage.setItem('m2_market_orders', JSON.stringify(updated));
-  };
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastBackup = localStorage.getItem('m2_last_auto_backup_date');
 
-  const syncCodes = (updated: WholesalerCode[]) => {
-    setWholesalerCodes(updated);
-    localStorage.setItem('m2_wholesaler_codes', JSON.stringify(updated));
-  };
+    if (lastBackup === todayStr) {
+      // Already backed up today
+      return;
+    }
+
+    const runAutoBackup = async () => {
+      try {
+        const { encryptData } = await import('./lib/crypto');
+        
+        const ledgerData = {
+          products,
+          orders,
+          wholesalerCodes,
+          backedUpAt: new Date().toISOString()
+        };
+
+        const encryptedPayload = encryptData(ledgerData);
+        const backupId = `auto-backup-${todayStr}`;
+        const backupDoc = {
+          id: backupId,
+          timestamp: new Date().toISOString(),
+          encryptedData: encryptedPayload,
+          summary: `Products: ${products.length}, Orders: ${orders.length}, Codes: ${wholesalerCodes.length}`,
+          isAuto: true
+        };
+
+        await setDoc(doc(db, 'auto_backups', backupId), backupDoc);
+        localStorage.setItem('m2_last_auto_backup_date', todayStr);
+        console.log(`[AutoBackup] Successfully uploaded daily snapshot: ${backupId}`);
+      } catch (err) {
+        console.warn("[AutoBackup] Failed to push daily snapshot:", err);
+      }
+    };
+
+    // Debounce slightly to ensure all snapshot collections have fully loaded in state
+    const timer = setTimeout(() => {
+      runAutoBackup();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [isOnline, products.length, orders.length, wholesalerCodes.length]);
 
   // Login event
   const handleLogin = (role: UserRole, wholesalerData?: WholesalerSession) => {
@@ -96,22 +215,25 @@ export default function App() {
     sessionStorage.removeItem('m2_market_wholesaler');
   };
 
-  // --- BUSINESS LOGIC ACTIONS ---
+  // --- BUSINESS LOGIC ACTIONS (Real-time Firestore persistence) ---
 
   // Wholesaler: Add product for valuation
-  const handleAddProduct = (newProduct: Omit<Product, 'id' | 'isApproved' | 'createdAt'>) => {
+  const handleAddProduct = async (newProduct: Omit<Product, 'id' | 'isApproved' | 'createdAt'>) => {
     const product: Product = {
       ...newProduct,
       id: 'prod-' + Math.random().toString(36).substr(2, 9),
       isApproved: false, // Must be approved by Admin
       createdAt: new Date().toISOString()
     };
-    const updated = [product, ...products];
-    syncProducts(updated);
+    try {
+      await setDoc(doc(db, "products", product.id), product);
+    } catch (err) {
+      console.error("Error adding product:", err);
+    }
   };
 
   // Admin: Add product directly with immediate approval/publishing
-  const handleAddProductDirect = (newProduct: Omit<Product, 'id' | 'isApproved' | 'createdAt'>) => {
+  const handleAddProductDirect = async (newProduct: Omit<Product, 'id' | 'isApproved' | 'createdAt'>) => {
     const product: Product = {
       ...newProduct,
       id: 'prod-' + Math.random().toString(36).substr(2, 9),
@@ -119,12 +241,15 @@ export default function App() {
       createdAt: new Date().toISOString(),
       originalWholesalePrice: newProduct.price
     };
-    const updated = [product, ...products];
-    syncProducts(updated);
+    try {
+      await setDoc(doc(db, "products", product.id), product);
+    } catch (err) {
+      console.error("Error adding product directly:", err);
+    }
   };
 
   // Guest: Place/Book order
-  const handleBookOrder = (items: OrderItem[], name: string, phone: string) => {
+  const handleBookOrder = async (items: OrderItem[], name: string, phone: string) => {
     const total = items.reduce((sum, item) => sum + (item.priceAtOrder * item.quantity), 0);
     const order: Order = {
       id: 'ORD-' + Math.floor(1000 + Math.random() * 9000), // e.g. ORD-7492
@@ -135,73 +260,76 @@ export default function App() {
       status: 'pending', // Pending Admin approval
       createdAt: new Date().toISOString()
     };
-    const updated = [order, ...orders];
-    syncOrders(updated);
+    try {
+      await setDoc(doc(db, "orders", order.id), order);
+    } catch (err) {
+      console.error("Error booking order:", err);
+    }
   };
 
   // Admin: Approve Wholesaler product and apply custom valuation price
-  const handleApproveProduct = (productId: string, finalPrice: number) => {
-    const updated = products.map((p) => {
-      if (p.id === productId) {
-        return {
-          ...p,
-          price: finalPrice,
-          isApproved: true
-        };
-      }
-      return p;
-    });
-    syncProducts(updated);
+  const handleApproveProduct = async (productId: string, finalPrice: number) => {
+    try {
+      await setDoc(doc(db, "products", productId), {
+        price: finalPrice,
+        isApproved: true
+      }, { merge: true });
+    } catch (err) {
+      console.error("Error approving product:", err);
+    }
   };
 
   // Admin/Wholesaler: Update product fields
-  const handleUpdateProduct = (updatedProduct: Product) => {
-    const updated = products.map((p) => (p.id === updatedProduct.id ? updatedProduct : p));
-    syncProducts(updated);
+  const handleUpdateProduct = async (updatedProduct: Product) => {
+    try {
+      await setDoc(doc(db, "products", updatedProduct.id), updatedProduct);
+    } catch (err) {
+      console.error("Error updating product:", err);
+    }
   };
 
   // Admin: Reject Wholesaler product before approval
-  const handleRejectProduct = (productId: string) => {
-    const updated = products.filter((p) => p.id !== productId);
-    syncProducts(updated);
+  const handleRejectProduct = async (productId: string) => {
+    try {
+      await deleteDoc(doc(db, "products", productId));
+    } catch (err) {
+      console.error("Error rejecting product:", err);
+    }
   };
 
   // Admin: Delete/Remove product from active directory
-  const handleDeleteProduct = (productId: string) => {
-    const updated = products.filter((p) => p.id !== productId);
-    syncProducts(updated);
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      await deleteDoc(doc(db, "products", productId));
+    } catch (err) {
+      console.error("Error deleting product:", err);
+    }
   };
 
   // Admin: Approve Guest order
-  const handleApproveOrder = (orderId: string) => {
-    const updated = orders.map((o) => {
-      if (o.id === orderId) {
-        return {
-          ...o,
-          status: 'approved' as const
-        };
-      }
-      return o;
-    });
-    syncOrders(updated);
+  const handleApproveOrder = async (orderId: string) => {
+    try {
+      await setDoc(doc(db, "orders", orderId), {
+        status: 'approved'
+      }, { merge: true });
+    } catch (err) {
+      console.error("Error approving order:", err);
+    }
   };
 
   // Admin: Reject Guest order
-  const handleRejectOrder = (orderId: string) => {
-    const updated = orders.map((o) => {
-      if (o.id === orderId) {
-        return {
-          ...o,
-          status: 'rejected' as const
-        };
-      }
-      return o;
-    });
-    syncOrders(updated);
+  const handleRejectOrder = async (orderId: string) => {
+    try {
+      await setDoc(doc(db, "orders", orderId), {
+        status: 'rejected'
+      }, { merge: true });
+    } catch (err) {
+      console.error("Error rejecting order:", err);
+    }
   };
 
   // Admin: Generate Wholesaler Code
-  const handleCreateCode = (companyName: string, customCode?: string) => {
+  const handleCreateCode = async (companyName: string, customCode?: string) => {
     const formattedCode = customCode 
       ? customCode.trim().toUpperCase() 
       : 'M2-WS-' + Math.floor(1000 + Math.random() * 9000);
@@ -220,35 +348,38 @@ export default function App() {
       isActive: true
     };
 
-    syncCodes([newCodeItem, ...wholesalerCodes]);
+    try {
+      await setDoc(doc(db, "wholesalerCodes", formattedCode), newCodeItem);
+    } catch (err) {
+      console.error("Error creating code:", err);
+    }
   };
 
   // Admin: Delete Wholesaler Code
-  const handleDeleteCode = (code: string) => {
-    const updated = wholesalerCodes.filter(c => c.code !== code);
-    syncCodes(updated);
+  const handleDeleteCode = async (code: string) => {
+    try {
+      await deleteDoc(doc(db, "wholesalerCodes", code));
+    } catch (err) {
+      console.error("Error deleting code:", err);
+    }
   };
 
   // Admin: Toggle Wholesaler Code Active Status
-  const handleToggleCodeActive = (code: string) => {
-    const updated = wholesalerCodes.map(c => {
-      if (c.code === code) {
-        return { ...c, isActive: !c.isActive };
-      }
-      return c;
-    });
-    syncCodes(updated);
+  const handleToggleCodeActive = async (code: string) => {
+    const target = wholesalerCodes.find(c => c.code === code);
+    if (!target) return;
+    try {
+      await setDoc(doc(db, "wholesalerCodes", code), {
+        isActive: !target.isActive
+      }, { merge: true });
+    } catch (err) {
+      console.error("Error toggling code active status:", err);
+    }
   };
 
-  // Synchronize state with latest localStorage records
-  const handleRefresh = () => {
-    const storedProducts = localStorage.getItem('m2_market_products');
-    const storedOrders = localStorage.getItem('m2_market_orders');
-    const storedCodes = localStorage.getItem('m2_wholesaler_codes');
-
-    if (storedProducts) setProducts(JSON.parse(storedProducts));
-    if (storedOrders) setOrders(JSON.parse(storedOrders));
-    if (storedCodes) setWholesalerCodes(JSON.parse(storedCodes));
+  // Synchronize state with latest records (force a cache/cloud reload)
+  const handleRefresh = async () => {
+    // Real-time listener already updates state automatically!
   };
 
   return (
@@ -260,13 +391,31 @@ export default function App() {
           <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             
             {/* Branding */}
-            <div className="flex items-center gap-2">
-              <div className="bg-indigo-600 text-white p-1.5 rounded-xl">
+            <div className="flex items-center gap-3">
+              <div className="bg-indigo-600 text-white p-1.5 rounded-xl flex items-center justify-center">
                 <ShoppingBag className="w-5 h-5" />
               </div>
-              <span className="font-bold text-slate-900 tracking-tight text-sm hidden sm:inline-block">
-                m2-Shopping-Mall
-              </span>
+              <div className="flex flex-col">
+                <span className="font-bold text-slate-900 tracking-tight text-sm">
+                  m2-Shopping-Mall
+                </span>
+                
+                {/* Sync Status Badge */}
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-pulse'}`} />
+                  <span className="text-[9px] font-bold tracking-wider uppercase text-slate-400 font-mono flex items-center gap-1">
+                    {isOnline ? (
+                      <>
+                        <Wifi className="w-2.5 h-2.5 text-emerald-500 inline" /> Online
+                      </>
+                    ) : (
+                      <>
+                        <WifiOff className="w-2.5 h-2.5 text-amber-500 inline" /> Offline Mode
+                      </>
+                    )}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Role & Context Badges */}
@@ -312,7 +461,7 @@ export default function App() {
       {/* Main Container */}
       <main id="app-main-view" className="flex-grow">
         {!activeRole ? (
-          <LoginConsole onLogin={handleLogin} wholesalerCodes={wholesalerCodes} />
+          <LoginConsole onLogin={handleLogin} wholesalerCodes={wholesalerCodes} isOnline={isOnline} />
         ) : (
           <div id="active-context-frame" className="animate-fade-in">
             {activeRole === 'guest' && (
