@@ -154,6 +154,12 @@ export default function App() {
     syncProducts(updated);
   };
 
+  // Admin/Wholesaler: Update product fields
+  const handleUpdateProduct = (updatedProduct: Product) => {
+    const updated = products.map((p) => (p.id === updatedProduct.id ? updatedProduct : p));
+    syncProducts(updated);
+  };
+
   // Admin: Reject Wholesaler product before approval
   const handleRejectProduct = (productId: string) => {
     const updated = products.filter((p) => p.id !== productId);
@@ -259,7 +265,7 @@ export default function App() {
                 <ShoppingBag className="w-5 h-5" />
               </div>
               <span className="font-bold text-slate-900 tracking-tight text-sm hidden sm:inline-block">
-                M2 Shopping Mall
+                m2-Shopping-Mall
               </span>
             </div>
 
@@ -344,6 +350,7 @@ export default function App() {
                 onToggleCodeActive={handleToggleCodeActive}
                 onAddProductDirect={handleAddProductDirect}
                 onRefresh={handleRefresh}
+                onUpdateProduct={handleUpdateProduct}
               />
             )}
           </div>

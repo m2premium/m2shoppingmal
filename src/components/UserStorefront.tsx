@@ -166,7 +166,7 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
     <div id="user-storefront-wrapper" className="max-w-7xl mx-auto px-4 py-8">
       
       {/* Upper Promo Banner */}
-      <div id="storefront-banner" className="bg-gradient-to-r from-indigo-900 to-indigo-750 text-white p-8 rounded-3xl mb-10 flex flex-col md:flex-row justify-between items-center gap-6 shadow-lg shadow-indigo-100/50">
+      <div id="storefront-banner" className="bg-gradient-to-r from-indigo-950 to-indigo-900 text-white p-8 rounded-3xl mb-10 flex flex-col md:flex-row justify-between items-center gap-6 shadow-lg shadow-indigo-100/50">
         <div className="space-y-2">
           <div className="inline-block bg-indigo-500/20 px-3 py-1 rounded-full text-indigo-300 font-semibold text-xs tracking-wider uppercase">
             Guest Shopper View

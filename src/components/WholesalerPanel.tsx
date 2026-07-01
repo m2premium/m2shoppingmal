@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Store, Plus, Clock, CheckCircle, Package, ArrowUpRight, HelpCircle, Eye, AlertCircle, ShoppingBag, RefreshCw } from 'lucide-react';
+import React, { useState, useMemo, useRef } from 'react';
+import { Store, Plus, Clock, CheckCircle, Package, ArrowUpRight, HelpCircle, Eye, AlertCircle, ShoppingBag, RefreshCw, Upload, ImagePlus } from 'lucide-react';
 import { Product, WholesalerSession, Order, OrderItem } from '../types';
 import UserStorefront from './UserStorefront';
 
@@ -48,6 +48,20 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
   const [customImage, setCustomImage] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result as string;
+      setCustomImage(base64String);
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Filter products matching current wholesaler company/session
   const myProducts = useMemo(() => {
     return products.filter((p) => p.wholesalerId === wholesaler.id);
@@ -87,7 +101,7 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
     <div id="wholesaler-panel-wrapper" className="max-w-7xl mx-auto px-4 py-8 space-y-10">
       
       {/* Upper Brand Badge Banner */}
-      <div id="wholesaler-banner" className="bg-gradient-to-r from-slate-900 to-slate-850 text-white p-8 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl">
+      <div id="wholesaler-banner" className="bg-gradient-to-r from-slate-950 to-slate-900 text-white p-8 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 bg-indigo-500/20 px-3 py-1 rounded-full text-indigo-300 font-semibold text-xs tracking-wider uppercase">
             <Store className="w-3.5 h-3.5" />
@@ -277,23 +291,56 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                     ))}
                   </div>
 
-                  <div className="pt-2">
-                    <div className="flex justify-between items-center mb-1">
-                      <label htmlFor="custom-image-url" className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
-                        Or Paste Custom Image URL
-                      </label>
-                      {customImage && (
-                        <span className="text-[9px] text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded">Custom active</span>
+                  {/* File Upload / Image Selector */}
+                  <div className="pt-2 space-y-2">
+                    <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                      Or Upload Device Image
+                    </label>
+                    <div 
+                      id="wholesaler-file-upload-zone"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-2 border-dashed border-slate-200 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer hover:bg-slate-50/50 transition-all flex flex-col items-center justify-center gap-1.5"
+                    >
+                      <input 
+                        id="wholesaler-image-file-input"
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                      />
+                      {customImage && customImage.startsWith('data:image') ? (
+                        <div className="relative flex flex-col items-center gap-1">
+                          <img src={customImage} alt="Uploaded preview" className="w-20 h-20 object-cover rounded-lg border shadow-sm" />
+                          <span className="text-[10px] text-slate-500">Click to replace file</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center">
+                          <Upload className="w-5 h-5 text-indigo-500 mb-1" />
+                          <span className="text-xs text-indigo-600 font-semibold">Click to upload image file</span>
+                          <span className="text-[9px] text-slate-400">Supports PNG, JPG, WebP</span>
+                        </div>
                       )}
                     </div>
-                    <input
-                      id="custom-image-url"
-                      type="url"
-                      value={customImage}
-                      onChange={(e) => setCustomImage(e.target.value)}
-                      placeholder="https://images.unsplash.com/..."
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs bg-slate-50/50"
-                    />
+
+                    <div className="pt-1">
+                      <div className="flex justify-between items-center mb-1">
+                        <label htmlFor="custom-image-url" className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                          Or Paste Custom Image URL
+                        </label>
+                        {customImage && !customImage.startsWith('data:image') && (
+                          <span className="text-[9px] text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded">URL Active</span>
+                        )}
+                      </div>
+                      <input
+                        id="custom-image-url"
+                        type="url"
+                        value={customImage.startsWith('data:image') ? '' : customImage}
+                        onChange={(e) => setCustomImage(e.target.value)}
+                        placeholder="https://images.unsplash.com/..."
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs bg-slate-50/50"
+                      />
+                    </div>
                   </div>
                 </div>
 
