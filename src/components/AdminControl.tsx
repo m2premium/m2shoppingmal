@@ -531,31 +531,31 @@ export default function AdminControl({
     <div id="admin-control-panel" className="max-w-7xl mx-auto px-4 py-8 space-y-10">
       
       {/* Admin Title Banner */}
-      <div id="admin-header" className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white p-8 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl border border-slate-800">
+      <div id="admin-header" className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 text-white p-8 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl shadow-sky-100/40 border border-transparent">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/30 px-3 py-1 rounded-full text-red-400 font-semibold text-xs tracking-wider uppercase">
-            <ShieldCheck className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 bg-white/20 border border-white/10 px-3 py-1 rounded-full text-sky-100 font-bold text-xs tracking-wider uppercase font-brand">
+            <ShieldCheck className="w-3.5 h-3.5 text-white" />
             <span>Secure System Admin Shell</span>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight">Management & Supervision Dashboard</h2>
-          <p className="text-slate-300 text-sm max-w-xl">
+          <h2 className="text-3xl font-black tracking-tight font-brand">Management & Supervision Dashboard</h2>
+          <p className="text-slate-100 text-sm max-w-xl">
             Authorize supply pipelines, audit pricing structures, dispatch customer cart bookings, and supervise wholesalers.
           </p>
         </div>
 
         <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-          <div className="flex flex-col font-mono text-xs text-slate-400 text-left md:text-right">
-            <span>Access Code: <strong className="text-emerald-400">m2-admin-001</strong></span>
-            <span>Status: <span className="text-emerald-400 font-bold">● Live Active Connection</span></span>
+          <div className="flex flex-col font-mono text-xs text-sky-100 text-left md:text-right">
+            <span>Access Code: <strong className="text-emerald-300 font-bold">m2-admin-001</strong></span>
+            <span>Status: <span className="text-emerald-300 font-bold">● Live Active Connection</span></span>
           </div>
 
           <button
             id="btn-refresh-admin"
             onClick={handleRefreshClick}
-            className="p-3.5 rounded-2xl border border-slate-800 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-sm relative shrink-0"
+            className="p-3.5 rounded-2xl border border-white/15 bg-white/10 hover:bg-white/20 text-white transition-all flex items-center justify-center cursor-pointer shadow-sm relative shrink-0"
             title="Sync Admin Console"
           >
-            <RefreshCw className={`w-5 h-5 ${isSpinning ? 'animate-spin text-red-400' : ''}`} />
+            <RefreshCw className={`w-5 h-5 ${isSpinning ? 'animate-spin text-sky-200' : ''}`} />
             {syncFeedback && (
               <span className="absolute -bottom-8 right-0 bg-slate-900 text-white text-[10px] py-1 px-2 rounded shadow whitespace-nowrap z-50 animate-fade-in">
                 Admin Refreshed!
@@ -615,13 +615,13 @@ export default function AdminControl({
 
       {/* Admin Operations Sub-Navigation */}
       <div className="space-y-6">
-        <div className="flex border-b border-slate-200">
+        <div className="flex border-b border-slate-200 overflow-x-auto no-scrollbar">
           <button
             id="subtab-supplies-btn"
             onClick={() => setActiveSubTab('supplies')}
-            className={`py-3 px-6 font-semibold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
+            className={`py-3 px-6 font-bold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 font-brand whitespace-nowrap -mb-px ${
               activeSubTab === 'supplies'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-sky-500 text-sky-600'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
@@ -637,16 +637,16 @@ export default function AdminControl({
           <button
             id="subtab-orders-btn"
             onClick={() => setActiveSubTab('orders')}
-            className={`py-3 px-6 font-semibold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
+            className={`py-3 px-6 font-bold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 font-brand whitespace-nowrap -mb-px ${
               activeSubTab === 'orders'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-sky-500 text-sky-600'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
             <ShoppingBag className="w-4 h-4" />
             <span>Booked Shopping Orders</span>
             {stats.pendingOrdersCount > 0 && (
-              <span className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse">
+              <span className="bg-sky-50 text-sky-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-sky-100 animate-pulse">
                 {stats.pendingOrdersCount}
               </span>
             )}
@@ -655,9 +655,9 @@ export default function AdminControl({
           <button
             id="subtab-inventory-btn"
             onClick={() => setActiveSubTab('inventory')}
-            className={`py-3 px-6 font-semibold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
+            className={`py-3 px-6 font-bold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 font-brand whitespace-nowrap -mb-px ${
               activeSubTab === 'inventory'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-sky-500 text-sky-600'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
@@ -668,9 +668,9 @@ export default function AdminControl({
           <button
             id="subtab-codes-btn"
             onClick={() => setActiveSubTab('codes')}
-            className={`py-3 px-6 font-semibold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 ${
+            className={`py-3 px-6 font-bold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 font-brand whitespace-nowrap -mb-px ${
               activeSubTab === 'codes'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-sky-500 text-sky-600'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >
@@ -686,9 +686,9 @@ export default function AdminControl({
           <button
             id="subtab-backup-btn"
             onClick={() => setActiveSubTab('backup')}
-            className={`py-3 px-6 font-semibold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 shrink-0 ${
+            className={`py-3 px-6 font-bold text-sm border-b-2 transition-colors cursor-pointer flex items-center gap-2 shrink-0 font-brand whitespace-nowrap -mb-px ${
               activeSubTab === 'backup'
-                ? 'border-indigo-600 text-indigo-600'
+                ? 'border-sky-500 text-sky-600'
                 : 'border-transparent text-slate-500 hover:text-slate-900'
             }`}
           >

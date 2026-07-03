@@ -101,27 +101,27 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
     <div id="wholesaler-panel-wrapper" className="max-w-7xl mx-auto px-4 py-8 space-y-10">
       
       {/* Upper Brand Badge Banner */}
-      <div id="wholesaler-banner" className="bg-gradient-to-r from-slate-950 to-slate-900 text-white p-8 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl">
+      <div id="wholesaler-banner" className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 text-white p-8 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl shadow-sky-100/40">
         <div className="space-y-2">
-          <div className="inline-flex items-center gap-1.5 bg-indigo-500/20 px-3 py-1 rounded-full text-indigo-300 font-semibold text-xs tracking-wider uppercase">
+          <div className="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full text-sky-100 font-bold text-xs tracking-wider uppercase font-brand">
             <Store className="w-3.5 h-3.5" />
             <span>Official Wholesale Partner</span>
           </div>
-          <h2 className="text-3xl font-bold tracking-tight">Welcome, {wholesaler.name}</h2>
-          <p className="text-slate-300 text-sm max-w-xl">
-            Representing <strong className="text-white underline decoration-indigo-400 font-medium">{wholesaler.companyName}</strong>. Add your wholesale batch and monitor pricing valuations.
+          <h2 className="text-3xl font-black tracking-tight font-brand">Welcome, {wholesaler.name}</h2>
+          <p className="text-slate-100 text-sm max-w-xl">
+            Representing <strong className="text-white underline decoration-sky-300 font-bold">{wholesaler.companyName}</strong>. Add your wholesale batch and monitor pricing valuations.
           </p>
         </div>
 
         {/* Rapid Stats & Refresh */}
         <div className="flex items-center gap-4">
-          <div className="bg-white/5 border border-white/10 p-4 rounded-2xl text-center shrink-0 min-w-28">
-            <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Total Listed</div>
-            <div className="font-mono text-xl font-bold mt-1">{myProducts.length}</div>
+          <div className="bg-white/15 border border-white/10 p-4 rounded-2xl text-center shrink-0 min-w-28">
+            <div className="text-[10px] text-sky-100 uppercase tracking-widest font-bold">Total Listed</div>
+            <div className="font-mono text-xl font-bold mt-1 text-white">{myProducts.length}</div>
           </div>
-          <div className="bg-white/5 border border-white/10 p-4 rounded-2xl text-center shrink-0 min-w-28">
-            <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Live Approved</div>
-            <div className="font-mono text-xl font-bold text-emerald-400 mt-1">
+          <div className="bg-white/15 border border-white/10 p-4 rounded-2xl text-center shrink-0 min-w-28">
+            <div className="text-[10px] text-sky-100 uppercase tracking-widest font-bold">Live Approved</div>
+            <div className="font-mono text-xl font-bold text-emerald-300 mt-1">
               {myProducts.filter(p => p.isApproved).length}
             </div>
           </div>
@@ -129,10 +129,10 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
           <button
             id="btn-refresh-wholesaler"
             onClick={handleRefreshClick}
-            className="p-3.5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all flex items-center justify-center cursor-pointer shadow-sm relative shrink-0 self-stretch"
+            className="p-3.5 rounded-2xl border border-white/15 bg-white/10 hover:bg-white/20 text-white transition-all flex items-center justify-center cursor-pointer shadow-sm relative shrink-0 self-stretch"
             title="Sync Wholesaler Console"
           >
-            <RefreshCw className={`w-5 h-5 ${isSpinning ? 'animate-spin text-indigo-400' : ''}`} />
+            <RefreshCw className={`w-5 h-5 ${isSpinning ? 'animate-spin text-sky-200' : ''}`} />
             {syncFeedback && (
               <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded shadow whitespace-nowrap z-50 animate-fade-in">
                 Synced!
@@ -207,7 +207,7 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Ergonomic Office Chair"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm bg-slate-50/50"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 text-sm bg-slate-50/50"
                   />
                 </div>
 
@@ -224,7 +224,7 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
                       placeholder="e.g. 149.99"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm bg-slate-50/50 font-mono"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 text-sm bg-slate-50/50 font-mono"
                     />
                   </div>
 
@@ -236,7 +236,7 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                       id="prod-category"
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm bg-slate-50/50"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 text-sm bg-slate-50/50"
                     >
                       <option value="Fashion">Fashion</option>
                       <option value="Electronics">Electronics</option>
@@ -258,7 +258,7 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Describe material quality, warranty, packaging details..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm bg-slate-50/50"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 text-sm bg-slate-50/50"
                   />
                 </div>
 
@@ -279,7 +279,7 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                         }}
                         className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
                           imageUrl === preset.url && !customImage
-                            ? 'border-indigo-600 ring-2 ring-indigo-100'
+                            ? 'border-sky-500 ring-2 ring-sky-100'
                             : 'border-transparent hover:border-slate-300'
                         }`}
                       >
@@ -299,7 +299,7 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                     <div 
                       id="wholesaler-file-upload-zone"
                       onClick={() => fileInputRef.current?.click()}
-                      className="border-2 border-dashed border-slate-200 hover:border-indigo-500 rounded-xl p-4 text-center cursor-pointer hover:bg-slate-50/50 transition-all flex flex-col items-center justify-center gap-1.5"
+                      className="border-2 border-dashed border-slate-200 hover:border-sky-500 rounded-xl p-4 text-center cursor-pointer hover:bg-sky-50/30 transition-all flex flex-col items-center justify-center gap-1.5"
                     >
                       <input 
                         id="wholesaler-image-file-input"
@@ -316,8 +316,8 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                         </div>
                       ) : (
                         <div className="flex flex-col items-center">
-                          <Upload className="w-5 h-5 text-indigo-500 mb-1" />
-                          <span className="text-xs text-indigo-600 font-semibold">Click to upload image file</span>
+                          <Upload className="w-5 h-5 text-sky-500 mb-1" />
+                          <span className="text-xs text-sky-600 font-bold font-brand">Click to upload image file</span>
                           <span className="text-[9px] text-slate-400">Supports PNG, JPG, WebP</span>
                         </div>
                       )}
@@ -329,7 +329,7 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                           Or Paste Custom Image URL
                         </label>
                         {customImage && !customImage.startsWith('data:image') && (
-                          <span className="text-[9px] text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded">URL Active</span>
+                          <span className="text-[9px] text-sky-600 font-bold bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">URL Active</span>
                         )}
                       </div>
                       <input
@@ -338,15 +338,15 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                         value={customImage.startsWith('data:image') ? '' : customImage}
                         onChange={(e) => setCustomImage(e.target.value)}
                         placeholder="https://images.unsplash.com/..."
-                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs bg-slate-50/50"
+                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 text-xs bg-slate-50/50"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="p-3 bg-indigo-50/40 rounded-xl border border-indigo-100 flex gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
-                  <p className="text-[10.5px] text-indigo-950 leading-relaxed font-medium">
+                <div className="p-3 bg-sky-50/50 rounded-xl border border-sky-100/30 flex gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
+                  <p className="text-[10.5px] text-slate-600 leading-relaxed font-semibold">
                     Admin review required before the item goes to live market view. Admin holds authority to adjust list prices.
                   </p>
                 </div>
@@ -354,7 +354,7 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
                 <button
                   id="wholesaler-submit-product-btn"
                   type="submit"
-                  className="w-full py-3 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm transition-all shadow-md shadow-indigo-100 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-3.5 px-5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all transform active:scale-[0.99] shadow-lg shadow-indigo-100 flex items-center justify-center gap-1.5 cursor-pointer font-brand"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Submit Batch Supply</span>
@@ -443,11 +443,11 @@ export default function WholesalerPanel({ wholesaler, products, orders, onAddPro
         </div>
       ) : (
         <div id="wholesaler-market-deck" className="animate-fade-in bg-white p-4 rounded-3xl border border-slate-100 shadow-sm space-y-4">
-          <div className="p-4 bg-indigo-50/40 rounded-2xl border border-indigo-100 flex items-center justify-between gap-4 flex-wrap">
+          <div className="p-4 bg-sky-50/50 rounded-2xl border border-sky-100/30 flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-2.5">
-              <ShoppingBag className="w-5 h-5 text-indigo-600 shrink-0" />
+              <ShoppingBag className="w-5 h-5 text-sky-600 shrink-0" />
               <div>
-                <h4 className="font-bold text-slate-800 text-sm">Wholesaler Partner Live Market View</h4>
+                <h4 className="font-bold text-slate-800 text-sm font-brand">Wholesaler Partner Live Market View</h4>
                 <p className="text-xs text-slate-500 leading-normal">
                   You are browsing the live marketplace. Feel free to place orders. They will be registered under your business brand.
                 </p>

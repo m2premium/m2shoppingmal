@@ -118,10 +118,10 @@ export default function OrderDispatchVisualizer({ orders }: OrderDispatchVisuali
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-50 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 bg-indigo-50 text-indigo-600 rounded-xl">
+            <span className="p-1.5 bg-sky-50 text-sky-600 rounded-xl">
               <TrendingUp className="w-5 h-5" />
             </span>
-            <h3 className="font-bold text-slate-900 text-base">Dispatch Volume Analytics</h3>
+            <h3 className="font-bold text-slate-900 text-base font-brand">Dispatch Volume Analytics</h3>
           </div>
           <p className="text-xs text-slate-500 mt-1">
             Real-time visual monitoring of pending versus approved shopper order metrics.
@@ -206,9 +206,9 @@ export default function OrderDispatchVisualizer({ orders }: OrderDispatchVisuali
         </div>
 
         {/* Dispatch Operations Guidance Side Cards */}
-        <div className="lg:col-span-5 flex flex-col justify-between gap-4">
+        <div className="lg:col-span-5 flex flex-col justify-between gap-4 font-sans">
           <div className="space-y-3">
-            <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest block">Dispatch Pipeline Overview</span>
+            <span className="text-[10px] font-bold text-sky-600 uppercase tracking-widest block font-brand">Dispatch Pipeline Overview</span>
             
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-amber-50/50 border border-amber-100 p-3 rounded-xl">
@@ -251,9 +251,9 @@ export default function OrderDispatchVisualizer({ orders }: OrderDispatchVisuali
           </div>
 
           {/* Operational recommendation box */}
-          <div className="p-3.5 bg-indigo-50/40 border border-indigo-100/50 rounded-2xl text-[11px] text-slate-600 space-y-1.5">
-            <div className="flex items-center gap-1.5 font-bold text-indigo-900">
-              <AlertTriangle className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+          <div className="p-3.5 bg-sky-50/50 border border-sky-100/30 rounded-2xl text-[11px] text-slate-600 space-y-1.5">
+            <div className="flex items-center gap-1.5 font-bold text-slate-800 font-brand">
+              <AlertTriangle className="w-3.5 h-3.5 text-sky-600 shrink-0" />
               <span>Dispatch Flow Guidance</span>
             </div>
             <p className="leading-relaxed">

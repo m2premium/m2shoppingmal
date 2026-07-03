@@ -166,22 +166,22 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
     <div id="user-storefront-wrapper" className="max-w-7xl mx-auto px-4 py-8">
       
       {/* Upper Promo Banner */}
-      <div id="storefront-banner" className="bg-gradient-to-r from-indigo-950 to-indigo-900 text-white p-8 rounded-3xl mb-10 flex flex-col md:flex-row justify-between items-center gap-6 shadow-lg shadow-indigo-100/50">
+      <div id="storefront-banner" className="bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 text-white p-8 rounded-3xl mb-10 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl shadow-sky-100/50">
         <div className="space-y-2">
-          <div className="inline-block bg-indigo-500/20 px-3 py-1 rounded-full text-indigo-300 font-semibold text-xs tracking-wider uppercase">
+          <div className="inline-block bg-white/20 px-3 py-1 rounded-full text-sky-100 font-semibold text-xs tracking-wider uppercase font-brand">
             Guest Shopper View
           </div>
-          <h2 className="text-3xl font-bold tracking-tight">Browse & Book Direct</h2>
-          <p className="text-slate-200 text-sm max-w-xl">
+          <h2 className="text-3xl font-black tracking-tight font-brand">Browse & Book Direct</h2>
+          <p className="text-slate-100 text-sm max-w-xl">
             Welcome to the public retail deck. Add premium products to your cart and place a pending booking. Our administrators review and greenlight all order dispatches.
           </p>
         </div>
         <button
           id="trigger-cart-sidebar"
           onClick={() => setIsCartOpen(true)}
-          className="bg-white hover:bg-slate-50 text-indigo-900 px-6 py-3.5 rounded-2xl font-semibold text-sm transition-all flex items-center gap-2.5 shadow-md relative shrink-0 cursor-pointer"
+          className="bg-white hover:bg-slate-50 text-indigo-900 px-6 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center gap-2.5 shadow-md relative shrink-0 cursor-pointer font-brand"
         >
-          <ShoppingCart className="w-5 h-5 text-indigo-600" />
+          <ShoppingCart className="w-5 h-5 text-sky-600" />
           <span>My Cart</span>
           {totalCartItems > 0 && (
             <span className="absolute -top-2.5 -right-2.5 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-md animate-pulse">
@@ -217,17 +217,17 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
                   placeholder="Search products by name or info..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm"
+                  className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500 transition-all text-sm"
                 />
               </div>
 
               <button
                 id="btn-refresh-storefront"
                 onClick={handleRefreshClick}
-                className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-indigo-600 transition-all flex items-center justify-center cursor-pointer shadow-sm relative shrink-0"
+                className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-sky-600 transition-all flex items-center justify-center cursor-pointer shadow-sm relative shrink-0"
                 title="Refresh storefront products and orders"
               >
-                <RefreshCw className={`w-5 h-5 ${isSpinning ? 'animate-spin text-indigo-600' : ''}`} />
+                <RefreshCw className={`w-5 h-5 ${isSpinning ? 'animate-spin text-sky-600' : ''}`} />
                 {syncFeedback && (
                   <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded shadow whitespace-nowrap z-50 animate-fade-in">
                     Refreshed!
@@ -243,10 +243,10 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
                   id={`cat-filter-${cat.toLowerCase().replace(/\s+/g, '-')}`}
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-tight transition-all cursor-pointer whitespace-nowrap font-brand ${
                     selectedCategory === cat
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
+                      ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-100'
+                      : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
                   }`}
                 >
                   {cat}
@@ -292,10 +292,10 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
                   <div className="p-5 flex flex-col justify-between flex-grow space-y-4">
                     <div className="space-y-2">
                       <div className="flex justify-between items-start gap-2">
-                        <h4 className="font-bold text-slate-900 text-base group-hover:text-indigo-600 transition-colors line-clamp-1">
+                        <h4 className="font-bold text-slate-900 text-base group-hover:text-sky-600 transition-colors line-clamp-1 font-brand">
                           {product.name}
                         </h4>
-                        <span className="font-mono font-bold text-lg text-indigo-600 shrink-0">
+                        <span className="font-mono font-black text-lg text-sky-600 shrink-0">
                           ${product.price.toFixed(2)}
                         </span>
                       </div>
@@ -317,7 +317,7 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
                       <button
                         id={`btn-add-cart-${product.id}`}
                         onClick={() => addToCart(product)}
-                        className="bg-slate-50 hover:bg-indigo-50 text-indigo-600 hover:text-indigo-700 p-2 rounded-xl transition-all font-semibold text-xs flex items-center gap-1.5 cursor-pointer border border-slate-100"
+                        className="bg-white hover:bg-sky-50 text-sky-600 hover:text-sky-700 p-2 rounded-xl transition-all font-bold text-xs flex items-center gap-1.5 cursor-pointer border border-sky-100 shadow-xs font-brand"
                       >
                         <Plus className="w-4 h-4" />
                         <span>Add To Cart</span>
@@ -343,9 +343,9 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
             {/* Drawer Header */}
             <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-5">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-indigo-600" />
-                <h3 className="font-bold text-slate-900 text-lg">My Cart</h3>
-                <span className="bg-slate-100 text-slate-700 text-xs px-2.5 py-0.5 rounded-full font-bold font-mono">
+                <ShoppingCart className="w-5 h-5 text-sky-600" />
+                <h3 className="font-bold text-slate-900 text-lg font-brand">My Cart</h3>
+                <span className="bg-sky-50 text-sky-700 text-xs px-2.5 py-0.5 rounded-full font-bold font-mono">
                   {totalCartItems}
                 </span>
               </div>
@@ -423,9 +423,9 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
             {/* Total price and Booking Form */}
             {totalCartItems > 0 && (
               <div className="border-t border-slate-100 pt-5 mt-5 space-y-5">
-                <div className="flex justify-between items-center bg-indigo-50/50 p-3 rounded-xl">
-                  <span className="text-sm font-semibold text-indigo-900">Total Order Value</span>
-                  <span className="font-mono font-bold text-lg text-indigo-700">${totalCartPrice.toFixed(2)}</span>
+                <div className="flex justify-between items-center bg-sky-50/50 p-3 rounded-xl border border-sky-100/30">
+                  <span className="text-sm font-semibold text-slate-700 font-brand">Total Order Value</span>
+                  <span className="font-mono font-black text-lg text-sky-600">${totalCartPrice.toFixed(2)}</span>
                 </div>
 
                 <form id="booking-submit-form" onSubmit={handleCheckout} className="space-y-4">
@@ -459,7 +459,7 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
                   <button
                     id="book-order-submit-btn"
                     type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl text-sm transition-all shadow-md shadow-indigo-100 flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all transform active:scale-[0.99] shadow-lg shadow-indigo-100 flex items-center justify-center gap-2 cursor-pointer font-brand"
                   >
                     <span>Submit Booking to Admin</span>
                     <ArrowRight className="w-4 h-4" />

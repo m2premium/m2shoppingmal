@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, ShieldCheck, UserCheck, ArrowRight, HelpCircle, Store, Key, CheckCircle2 } from 'lucide-react';
+import { 
+  ShoppingBag, 
+  ShieldCheck, 
+  ArrowRight, 
+  Store, 
+  Key, 
+  CheckCircle2, 
+  User, 
+  Phone, 
+  HelpCircle,
+  Lock
+} from 'lucide-react';
 import { UserRole, WholesalerSession, WholesalerCode } from '../types';
 
 interface LoginConsoleProps {
@@ -45,9 +56,7 @@ export default function LoginConsole({ onLogin, wholesalerCodes, isOnline }: Log
 
   const handleGuestSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Allow custom guest name or default to "Guest Shopper"
     const name = guestName.trim() || 'Guest Shopper';
-    // Store guest details in session for billing
     sessionStorage.setItem('guest_name', name);
     sessionStorage.setItem('guest_phone', guestPhone.trim() || 'N/A');
     onLogin('guest');
@@ -91,147 +100,162 @@ export default function LoginConsole({ onLogin, wholesalerCodes, isOnline }: Log
   };
 
   return (
-    <div id="login-console-container" className="min-h-[85vh] flex items-center justify-center p-4">
-      <div id="login-card" className="w-full max-w-4xl bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100 grid md:grid-cols-12">
-        
-        {/* Left Side: Branding and Hero */}
-        <div id="login-brand-sidebar" className="md:col-span-5 bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 p-8 text-white flex flex-col justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-2 mb-8">
-              <div className="inline-flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-md">
-                <Store className="w-5 h-5 text-indigo-400" />
-                <span className="text-xs font-mono font-semibold tracking-wider uppercase">M2-MARKET</span>
-              </div>
-              
-              {isOnline !== undefined && (
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase backdrop-blur-md ${isOnline ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-                  <span>{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
-                </div>
-              )}
+    <div id="login-page-wrapper" className="bg-gradient-to-tr from-sky-50 via-slate-50 to-indigo-50 text-slate-800 min-h-screen flex flex-col justify-between selection:bg-sky-400 selection:text-white">
+      
+      {/* Header Banner Info */}
+      <header className="w-full max-w-7xl mx-auto px-6 pt-6 flex flex-wrap justify-between items-center gap-4 text-xs font-medium tracking-wide text-slate-500">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-extrabold flex items-center justify-center rounded-xl shadow-md font-brand text-lg">
+            M2
+          </div>
+          <span className="font-bold text-slate-700 uppercase tracking-wider font-brand text-sm">
+            M2 Shopping Mall
+          </span>
+        </div>
+        <div className="flex items-center gap-4">
+          {isOnline !== undefined && (
+            <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3.5 py-1.5 rounded-full border border-sky-100 shadow-xs">
+              <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-pulse'}`}></span>
+              <span className="text-slate-600 font-medium">
+                System: <span className={isOnline ? 'text-emerald-600 font-semibold' : 'text-amber-600 font-semibold'}>{isOnline ? 'Online' : 'Offline Mode'}</span>
+              </span>
             </div>
-            
-            <h1 className="text-3xl font-bold tracking-tight mb-4">
-              M2-Shopping-Mall Market
+          )}
+          <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-3.5 py-1.5 rounded-full border border-sky-100 shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+            <span className="text-slate-600 font-medium">
+              Portal: <span className="text-sky-600 font-semibold">Wholesaler & Customer</span>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Container Split Layout */}
+      <main className="w-full max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-12 gap-12 items-center flex-grow">
+        
+        {/* Left Section: Info Panel */}
+        <section className="md:col-span-6 space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-sky-100/60 border border-sky-200 rounded-full text-xs font-semibold text-sky-700 tracking-wide">
+            ✨ Multi-Tenant Marketplace Ecosystem
+          </div>
+          
+          <div className="space-y-4">
+            <h1 className="text-4xl lg:text-5xl font-black tracking-tight text-slate-900 font-brand leading-tight">
+              Centralized <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 drop-shadow-xs">
+                Merchant Hub.
+              </span>
             </h1>
-            <p className="text-slate-300 text-sm leading-relaxed">
-              An all-in-one digital ecosystem. Browse live products, list wholesale supplies for admin valuation, or supervise operations as site administrator.
+            <p className="text-slate-600 max-w-md text-base leading-relaxed">
+              Access your digital storefront, manage inventory distributions, and connect directly with global wholesale partners instantly.
             </p>
           </div>
 
-          <div className="mt-8 pt-8 border-t border-slate-800/60">
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center shrink-0">
-                  <UserCheck className="w-4 h-4 text-indigo-400" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold">Flexible Roles</h4>
-                  <p className="text-xs text-slate-400">Instantly switch between Guest, Wholesaler, and Admin environments.</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold">Strict Price Valuations</h4>
-                  <p className="text-xs text-slate-400">Admin reviews and modifies wholesaler prices before approving products live.</p>
-                </div>
-              </div>
+          {/* Marketplace Quick Metrics Grid */}
+          <div className="grid grid-cols-3 gap-4 pt-6 border-t border-slate-200">
+            <div className="space-y-1">
+              <div className="text-2xl font-bold text-slate-900 font-brand">Verified</div>
+              <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Tenants</div>
+            </div>
+            <div className="space-y-1 border-l border-slate-200 pl-4">
+              <div className="text-2xl font-bold text-slate-900 font-brand">Real-Time</div>
+              <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Invoicing</div>
+            </div>
+            <div className="space-y-1 border-l border-slate-200 pl-4">
+              <div className="text-2xl font-bold text-slate-900 font-brand">Multi-Role</div>
+              <div className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Dashboard</div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Right Side: Tabbed Form */}
-        <div id="login-form-area" className="md:col-span-7 p-8 md:p-12 flex flex-col justify-center">
+        {/* Right Section: Form Panel */}
+        <section className="md:col-span-6 bg-white/75 backdrop-blur-md border border-white rounded-2xl p-8 lg:p-10 shadow-xl shadow-sky-100/40 relative">
           
-          {/* Tabs Selector */}
-          <div id="login-tabs" className="grid grid-cols-3 gap-1 bg-slate-100 p-1.5 rounded-xl mb-8">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight font-brand">Account Sign In</h2>
+            <p className="text-sm text-slate-500 mt-1">Please select your role and enter credentials.</p>
+          </div>
+
+          {/* Role selector radio-style grid with 3 options */}
+          <div className="grid grid-cols-3 gap-2.5 mb-6">
             <button
-              id="tab-guest-btn"
               type="button"
-              onClick={() => { setActiveTab('guest'); }}
-              className={`py-2 px-3 text-xs md:text-sm font-medium rounded-lg transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 ${
+              onClick={() => setActiveTab('guest')}
+              className={`border rounded-xl p-2.5 flex flex-col items-center gap-1.5 cursor-pointer bg-white hover:bg-slate-50/50 transition-all text-center select-none ${
                 activeTab === 'guest'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'border-sky-500 bg-sky-50/50 text-sky-800 ring-2 ring-sky-100'
+                  : 'border-slate-200 text-slate-600'
               }`}
             >
-              <ShoppingBag className="w-4 h-4" />
-              <span>Guest</span>
+              <ShoppingBag className={`w-4 h-4 ${activeTab === 'guest' ? 'text-sky-600' : 'text-slate-400'}`} />
+              <span className="text-[11px] font-bold tracking-tight">Customer</span>
             </button>
+
             <button
-              id="tab-wholesaler-btn"
               type="button"
-              onClick={() => { setActiveTab('wholesaler'); }}
-              className={`py-2 px-3 text-xs md:text-sm font-medium rounded-lg transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 ${
+              onClick={() => setActiveTab('wholesaler')}
+              className={`border rounded-xl p-2.5 flex flex-col items-center gap-1.5 cursor-pointer bg-white hover:bg-slate-50/50 transition-all text-center select-none ${
                 activeTab === 'wholesaler'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'border-sky-500 bg-sky-50/50 text-sky-800 ring-2 ring-sky-100'
+                  : 'border-slate-200 text-slate-600'
               }`}
             >
-              <Store className="w-4 h-4" />
-              <span>Wholesaler</span>
+              <Store className={`w-4 h-4 ${activeTab === 'wholesaler' ? 'text-sky-600' : 'text-slate-400'}`} />
+              <span className="text-[11px] font-bold tracking-tight">Wholesaler</span>
             </button>
+
             <button
-              id="tab-admin-btn"
               type="button"
-              onClick={() => { setActiveTab('admin'); }}
-              className={`py-2 px-3 text-xs md:text-sm font-medium rounded-lg transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 ${
+              onClick={() => setActiveTab('admin')}
+              className={`border rounded-xl p-2.5 flex flex-col items-center gap-1.5 cursor-pointer bg-white hover:bg-slate-50/50 transition-all text-center select-none ${
                 activeTab === 'admin'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'border-indigo-500 bg-indigo-50/50 text-indigo-800 ring-2 ring-indigo-100'
+                  : 'border-slate-200 text-slate-600'
               }`}
             >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Admin</span>
+              <ShieldCheck className={`w-4 h-4 ${activeTab === 'admin' ? 'text-indigo-600' : 'text-slate-400'}`} />
+              <span className="text-[11px] font-bold tracking-tight">Admin</span>
             </button>
           </div>
 
-          {/* Form Contexts */}
+          {/* Form Content - Customer (Guest) */}
           {activeTab === 'guest' && (
-            <form id="guest-login-form" onSubmit={handleGuestSubmit} className="space-y-5">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-slate-900">Enter Market Storefront</h3>
-                <p className="text-sm text-slate-500">Log in as a guest shopper to view live products and place test orders.</p>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="guest-name" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                    Your Full Name (Optional)
-                  </label>
-                  <input
-                    id="guest-name"
-                    type="text"
+            <form onSubmit={handleGuestSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Your Full Name (Optional)</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                    <User className="w-4 h-4" />
+                  </span>
+                  <input 
+                    type="text" 
                     value={guestName}
                     onChange={(e) => setGuestName(e.target.value)}
-                    placeholder="e.g. Amani Joseph"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm bg-slate-50/50"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="guest-phone" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                    Phone Number (Optional)
-                  </label>
-                  <input
-                    id="guest-phone"
-                    type="tel"
-                    value={guestPhone}
-                    onChange={(e) => setGuestPhone(e.target.value)}
-                    placeholder="e.g. +234 812 345 6789"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm bg-slate-50/50"
+                    placeholder="e.g. Amani Joseph" 
+                    className="w-full bg-white border border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-100 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all shadow-inner"
                   />
                 </div>
               </div>
 
-              <button
-                id="submit-guest-login"
-                type="submit"
-                className="w-full py-3.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all shadow-md shadow-indigo-100 flex items-center justify-center gap-2 mt-4 cursor-pointer"
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Phone Number (Optional)</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                    <Phone className="w-4 h-4" />
+                  </span>
+                  <input 
+                    type="tel" 
+                    value={guestPhone}
+                    onChange={(e) => setGuestPhone(e.target.value)}
+                    placeholder="e.g. +234 812 345 6789" 
+                    className="w-full bg-white border border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-100 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all shadow-inner"
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider transition-all transform active:scale-[0.99] shadow-lg shadow-indigo-200/50 focus:outline-none focus:ring-4 focus:ring-sky-200 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Enter Storefront as Guest</span>
                 <ArrowRight className="w-4 h-4" />
@@ -239,71 +263,66 @@ export default function LoginConsole({ onLogin, wholesalerCodes, isOnline }: Log
             </form>
           )}
 
+          {/* Form Content - Wholesaler */}
           {activeTab === 'wholesaler' && (
-            <form id="wholesaler-login-form" onSubmit={handleWholesalerSubmit} className="space-y-5">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-slate-900">Wholesaler Partner Portal</h3>
-                <p className="text-sm text-slate-500">Sign in with the access code generated by the Super Admin to access your shop console.</p>
-              </div>
-
+            <form onSubmit={handleWholesalerSubmit} className="space-y-5">
               {wholesalerError && (
-                <div id="wholesaler-error-msg" className="p-3.5 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl font-medium">
+                <div className="p-3.5 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl font-medium">
                   {wholesalerError}
                 </div>
               )}
 
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="wholesaler-access-code" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                    Wholesaler Access Code
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="wholesaler-access-code"
-                      type="text"
-                      required
-                      value={wholesalerCodeInput}
-                      onChange={(e) => setWholesalerCodeInput(e.target.value)}
-                      placeholder="e.g. M2-WS-PREMIUM"
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm bg-slate-50/50 font-mono tracking-wider"
-                    />
-                  </div>
-                  
-                  {/* Realtime Resolved Brand Indicator */}
-                  {resolvedCompany ? (
-                    <div id="code-success-indicator" className="mt-2 flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                      <span>Verified Brand: <strong>{resolvedCompany}</strong></span>
-                    </div>
-                  ) : (
-                    wholesalerCodeInput.trim() && (
-                      <div id="code-searching-indicator" className="mt-2 text-xs text-amber-500 font-medium">
-                        Searching active system codes...
-                      </div>
-                    )
-                  )}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Wholesaler Access Code</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                    <Key className="w-4 h-4" />
+                  </span>
+                  <input 
+                    type="text" 
+                    required
+                    value={wholesalerCodeInput}
+                    onChange={(e) => setWholesalerCodeInput(e.target.value)}
+                    placeholder="e.g. M2-WS-PREMIUM" 
+                    className="w-full bg-white border border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-100 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all shadow-inner font-mono tracking-wider"
+                  />
                 </div>
+                
+                {/* Realtime Resolved Brand Indicator */}
+                {resolvedCompany ? (
+                  <div className="mt-2 flex items-center gap-1.5 text-xs text-emerald-600 font-semibold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <span>Verified Brand: <strong>{resolvedCompany}</strong></span>
+                  </div>
+                ) : (
+                  wholesalerCodeInput.trim() && (
+                    <div className="mt-2 text-xs text-amber-500 font-medium">
+                      Searching active system codes...
+                    </div>
+                  )
+                )}
+              </div>
 
-                <div>
-                  <label htmlFor="wholesaler-name" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                    Your Name (Representative)
-                  </label>
-                  <input
-                    id="wholesaler-name"
-                    type="text"
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Your Name (Representative)</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                    <User className="w-4 h-4" />
+                  </span>
+                  <input 
+                    type="text" 
                     required
                     value={wholesalerName}
                     onChange={(e) => setWholesalerName(e.target.value)}
-                    placeholder="e.g. John Doe"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm bg-slate-50/50"
+                    placeholder="e.g. John Doe" 
+                    className="w-full bg-white border border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-100 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all shadow-inner"
                   />
                 </div>
               </div>
 
-              <button
-                id="submit-wholesaler-login"
-                type="submit"
-                className="w-full py-3.5 px-5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl transition-all shadow-md shadow-indigo-100 flex items-center justify-center gap-2 mt-4 cursor-pointer"
+              <button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider transition-all transform active:scale-[0.99] shadow-lg shadow-indigo-200/50 focus:outline-none focus:ring-4 focus:ring-sky-200 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Access Partner Dashboard</span>
                 <ArrowRight className="w-4 h-4" />
@@ -311,40 +330,35 @@ export default function LoginConsole({ onLogin, wholesalerCodes, isOnline }: Log
             </form>
           )}
 
+          {/* Form Content - Admin */}
           {activeTab === 'admin' && (
-            <form id="admin-login-form" onSubmit={handleAdminSubmit} className="space-y-5">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold text-slate-900">System Administration</h3>
-                <p className="text-sm text-slate-500">Restricted zone. Sign in using the designated management code.</p>
-              </div>
-
+            <form onSubmit={handleAdminSubmit} className="space-y-5">
               {adminError && (
-                <div id="admin-error-msg" className="p-3.5 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl font-medium">
+                <div className="p-3.5 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl font-medium">
                   {adminError}
                 </div>
               )}
 
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="admin-code" className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                    Authorization Code
-                  </label>
-                  <input
-                    id="admin-code"
-                    type="password"
+              <div className="space-y-2">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">Security Password</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                    <Lock className="w-4 h-4" />
+                  </span>
+                  <input 
+                    type="password" 
                     required
                     value={adminCode}
                     onChange={(e) => setAdminCode(e.target.value)}
-                    placeholder="Enter authorization code..."
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm bg-slate-50/50 font-mono tracking-widest"
+                    placeholder="••••••••" 
+                    className="w-full bg-white border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 rounded-xl pl-10 pr-4 py-3 text-sm text-slate-800 placeholder-slate-300 outline-none transition-all shadow-inner font-mono tracking-widest"
                   />
                 </div>
               </div>
 
-              <button
-                id="submit-admin-login"
-                type="submit"
-                className="w-full py-3.5 px-5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl transition-all shadow-md flex items-center justify-center gap-2 mt-4 cursor-pointer"
+              <button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-indigo-600 to-slate-900 hover:from-indigo-500 hover:to-slate-800 text-white font-bold py-3.5 px-4 rounded-xl text-xs uppercase tracking-wider transition-all transform active:scale-[0.99] shadow-lg shadow-indigo-200/50 focus:outline-none focus:ring-4 focus:ring-indigo-200 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Initialize Secure Admin Session</span>
                 <ArrowRight className="w-4 h-4" />
@@ -352,8 +366,25 @@ export default function LoginConsole({ onLogin, wholesalerCodes, isOnline }: Log
             </form>
           )}
 
-        </div>
-      </div>
+          {/* Context Footer Inside Form Card */}
+          <div className="mt-6 pt-6 border-t border-slate-100 flex flex-wrap justify-between items-center gap-2 text-xs font-medium text-slate-400">
+            <span className="flex items-center gap-1.5">
+              <HelpCircle className="w-3.5 h-3.5 text-slate-300" />
+              <span>Need workspace assistance?</span>
+            </span>
+            <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              Secure Environment
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer Navigation */}
+      <footer className="w-full text-center py-6 text-xs text-slate-400 border-t border-slate-200/60 mt-8">
+        Not a registered partner? <a href="#" onClick={() => alert('Please contact the Platform Admin (m2-admin-001) for vendor activation.')} className="text-sky-600 hover:underline font-bold">Apply for Storefront Access</a>
+      </footer>
+
     </div>
   );
 }

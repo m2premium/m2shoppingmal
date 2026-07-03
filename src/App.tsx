@@ -383,21 +383,21 @@ export default function App() {
   };
 
   return (
-    <div id="app-root-container" className="min-h-screen bg-slate-50 flex flex-col justify-between">
+    <div id="app-root-container" className="min-h-screen bg-gradient-to-tr from-sky-50 via-slate-50 to-indigo-50 text-slate-800 flex flex-col justify-between selection:bg-sky-400 selection:text-white">
       
       {/* Dynamic Header */}
       {activeRole && (
-        <header id="app-global-header" className="bg-white border-b border-slate-100 shadow-sm sticky top-0 z-40 transition-all">
-          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <header id="app-global-header" className="bg-white/80 backdrop-blur-md border-b border-sky-100/50 sticky top-0 z-40 transition-all shadow-sm">
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
             
             {/* Branding */}
             <div className="flex items-center gap-3">
-              <div className="bg-indigo-600 text-white p-1.5 rounded-xl flex items-center justify-center">
-                <ShoppingBag className="w-5 h-5" />
+              <div className="w-9 h-9 bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-extrabold flex items-center justify-center rounded-xl shadow-md font-brand text-sm">
+                M2
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-slate-900 tracking-tight text-sm">
-                  m2-Shopping-Mall
+                <span className="font-bold text-slate-700 uppercase tracking-wider font-brand text-xs">
+                  M2 Shopping Mall
                 </span>
                 
                 {/* Sync Status Badge */}
@@ -410,7 +410,7 @@ export default function App() {
                       </>
                     ) : (
                       <>
-                        <WifiOff className="w-2.5 h-2.5 text-amber-500 inline" /> Offline Mode
+                        <WifiOff className="w-2.5 h-2.5 text-amber-500 inline" /> Offline
                       </>
                     )}
                   </span>
@@ -419,27 +419,27 @@ export default function App() {
             </div>
 
             {/* Role & Context Badges */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               {activeRole === 'admin' && (
-                <div id="role-admin-badge" className="inline-flex items-center gap-1.5 bg-red-50 text-red-700 border border-red-200 px-3 py-1 rounded-full text-xs font-bold">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Platform Admin</span>
+                <div id="role-admin-badge" className="inline-flex items-center gap-1.5 bg-indigo-50/80 border border-indigo-100 px-3 py-1.5 rounded-full text-xs font-bold text-indigo-700 shadow-xs">
+                  <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                  <span className="font-brand">Platform Admin</span>
                 </div>
               )}
 
               {activeRole === 'wholesaler' && wholesalerSession && (
-                <div id="role-wholesaler-badge" className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-1 rounded-full text-xs font-bold">
-                  <Store className="w-3.5 h-3.5 text-indigo-600" />
-                  <span className="truncate max-w-28 sm:max-w-none">
-                    Wholesaler ({wholesalerSession.companyName})
+                <div id="role-wholesaler-badge" className="inline-flex items-center gap-2 bg-sky-50/80 border border-sky-100 px-3 py-1.5 rounded-full text-xs font-bold text-sky-700 shadow-xs">
+                  <Store className="w-3.5 h-3.5 text-sky-600" />
+                  <span className="truncate max-w-28 sm:max-w-none font-brand">
+                    {wholesalerSession.companyName}
                   </span>
                 </div>
               )}
 
               {activeRole === 'guest' && (
-                <div id="role-guest-badge" className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 rounded-full text-xs font-bold">
-                  <User className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Guest Shopper</span>
+                <div id="role-guest-badge" className="inline-flex items-center gap-1.5 bg-slate-100/80 border border-slate-200 px-3 py-1.5 rounded-full text-xs font-bold text-slate-700 shadow-xs">
+                  <User className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="font-brand">Guest Shopper</span>
                 </div>
               )}
 
@@ -447,7 +447,7 @@ export default function App() {
               <button
                 id="btn-signout"
                 onClick={handleLogout}
-                className="text-slate-500 hover:text-red-600 bg-slate-50 hover:bg-red-50 p-2 rounded-xl transition-all cursor-pointer border border-slate-100"
+                className="text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 p-2 rounded-xl transition-all cursor-pointer border border-slate-200 shadow-xs"
                 title="Log out session"
               >
                 <LogOut className="w-4 h-4" />
