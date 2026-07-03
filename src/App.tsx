@@ -249,12 +249,22 @@ export default function App() {
   };
 
   // Guest: Place/Book order
-  const handleBookOrder = async (items: OrderItem[], name: string, phone: string) => {
+  const handleBookOrder = async (
+    items: OrderItem[],
+    name: string,
+    phone: string,
+    whatsapp?: string,
+    address?: string,
+    email?: string
+  ) => {
     const total = items.reduce((sum, item) => sum + (item.priceAtOrder * item.quantity), 0);
     const order: Order = {
       id: 'ORD-' + Math.floor(1000 + Math.random() * 9000), // e.g. ORD-7492
       customerName: name,
       customerPhone: phone || undefined,
+      customerWhatsApp: whatsapp || undefined,
+      customerAddress: address || undefined,
+      customerEmail: email || undefined,
       items,
       totalPrice: total,
       status: 'pending', // Pending Admin approval

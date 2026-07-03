@@ -857,10 +857,43 @@ export default function AdminControl({
                             </span>
                           </div>
                           
-                          <div className="mt-1 text-xs font-semibold text-slate-700 flex items-center gap-2">
-                            <span className="text-slate-400">Customer:</span>
-                            <User className="w-3 h-3 text-slate-400" />
-                            <span>{order.customerName} {order.customerPhone ? `(${order.customerPhone})` : ''}</span>
+                          <div className="mt-2 text-xs text-slate-600 space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-100 max-w-xl">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-slate-800">Customer Name:</span>
+                              <span className="font-medium text-slate-950">{order.customerName}</span>
+                            </div>
+                            {order.customerPhone && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-slate-800">Phone:</span>
+                                <span>{order.customerPhone}</span>
+                              </div>
+                            )}
+                            {order.customerWhatsApp && (
+                              <div className="flex items-center gap-2 text-emerald-600 font-medium">
+                                <span className="font-semibold text-slate-800">WhatsApp:</span>
+                                <a 
+                                  href={`https://wa.me/${order.customerWhatsApp.replace(/\D/g, '') || order.customerWhatsApp}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="hover:underline flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-100 font-semibold text-[11px]"
+                                >
+                                  <span>{order.customerWhatsApp}</span>
+                                  <span className="text-[9px] bg-emerald-500 text-white px-1 py-0.5 rounded uppercase font-bold tracking-wider">Chat</span>
+                                </a>
+                              </div>
+                            )}
+                            {order.customerEmail && (
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-slate-800">Email:</span>
+                                <a href={`mailto:${order.customerEmail}`} className="text-indigo-600 hover:underline">{order.customerEmail}</a>
+                              </div>
+                            )}
+                            {order.customerAddress && (
+                              <div className="flex items-start gap-2 pt-1 border-t border-slate-200/60 mt-1">
+                                <span className="font-semibold text-slate-800 shrink-0">Delivery Address:</span>
+                                <span className="italic text-slate-700">{order.customerAddress}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -927,15 +960,19 @@ export default function AdminControl({
                       className="bg-white px-4 py-3 rounded-xl border border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3 text-xs"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono font-bold text-slate-800 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100 text-[11px]">
                             {order.id}
                           </span>
                           <span className="font-medium text-slate-700">{order.customerName}</span>
+                          {order.customerWhatsApp && (
+                            <span className="text-[10px] text-emerald-600 font-medium">WhatsApp: {order.customerWhatsApp}</span>
+                          )}
                           <span className="text-slate-400">({order.items.length} items)</span>
                         </div>
                         <div className="text-slate-400 font-mono text-[10px]">
                           ${order.totalPrice.toFixed(2)} • Resolved {new Date(order.createdAt).toLocaleDateString()}
+                          {order.customerAddress && ` • Delivery to: ${order.customerAddress}`}
                         </div>
                       </div>
 

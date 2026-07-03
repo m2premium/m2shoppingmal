@@ -24,6 +24,9 @@ export interface Order {
   id: string;
   customerName: string;
   customerPhone?: string;
+  customerWhatsApp?: string; // WhatsApp number
+  customerAddress?: string;  // Current address
+  customerEmail?: string;    // Email address
   items: OrderItem[];
   totalPrice: number;
   status: 'pending' | 'approved' | 'rejected';

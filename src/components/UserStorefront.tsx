@@ -19,7 +19,14 @@ import { Product, Order, OrderItem } from '../types';
 interface UserStorefrontProps {
   products: Product[];
   orders: Order[];
-  onBookOrder: (items: OrderItem[], name: string, phone: string) => void;
+  onBookOrder: (
+    items: OrderItem[],
+    name: string,
+    phone: string,
+    whatsapp?: string,
+    address?: string,
+    email?: string
+  ) => void;
   defaultName?: string;
   defaultPhone?: string;
   onRefresh?: () => void;
@@ -56,6 +63,9 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
   // Booking details (prefill from guest session or defaults)
   const [bookingName, setBookingName] = useState(() => defaultName || sessionStorage.getItem('guest_name') || '');
   const [bookingPhone, setBookingPhone] = useState(() => defaultPhone || sessionStorage.getItem('guest_phone') || '');
+  const [bookingWhatsApp, setBookingWhatsApp] = useState(() => sessionStorage.getItem('guest_whatsapp') || defaultPhone || '');
+  const [bookingAddress, setBookingAddress] = useState(() => sessionStorage.getItem('guest_address') || '');
+  const [bookingEmail, setBookingEmail] = useState(() => sessionStorage.getItem('guest_email') || '');
   const [bookingMessage, setBookingMessage] = useState('');
 
   // Get active categories
@@ -137,6 +147,25 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
       alert('Please enter your name to book the order.');
       return;
     }
+    if (!bookingWhatsApp.trim()) {
+      alert('Please enter your WhatsApp phone number to book the order.');
+      return;
+    }
+    if (!bookingAddress.trim()) {
+      alert('Please enter your current address to book the order.');
+      return;
+    }
+    if (!bookingEmail.trim()) {
+      alert('Please enter your email to book the order.');
+      return;
+    }
+
+    // Persist details in session for convenience
+    sessionStorage.setItem('guest_name', bookingName);
+    sessionStorage.setItem('guest_phone', bookingPhone);
+    sessionStorage.setItem('guest_whatsapp', bookingWhatsApp);
+    sessionStorage.setItem('guest_address', bookingAddress);
+    sessionStorage.setItem('guest_email', bookingEmail);
 
     const items = Object.values(cart) as Array<{ product: Product; quantity: number }>;
     const orderItems: OrderItem[] = items.map((item) => ({
@@ -147,7 +176,7 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
       image: item.product.image
     }));
 
-    onBookOrder(orderItems, bookingName, bookingPhone);
+    onBookOrder(orderItems, bookingName, bookingPhone, bookingWhatsApp, bookingAddress, bookingEmail);
     setCart({}); // clear cart
     setIsCartOpen(false);
     setBookingMessage('🎉 Your order was successfully booked! Admin will review it shortly.');
@@ -176,19 +205,35 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
             Welcome to the public retail deck. Add premium products to your cart and place a pending booking. Our administrators review and greenlight all order dispatches.
           </p>
         </div>
-        <button
-          id="trigger-cart-sidebar"
-          onClick={() => setIsCartOpen(true)}
-          className="bg-white hover:bg-slate-50 text-indigo-900 px-6 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center gap-2.5 shadow-md relative shrink-0 cursor-pointer font-brand"
-        >
-          <ShoppingCart className="w-5 h-5 text-sky-600" />
-          <span>My Cart</span>
-          {totalCartItems > 0 && (
-            <span className="absolute -top-2.5 -right-2.5 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-md animate-pulse">
-              {totalCartItems}
-            </span>
-          )}
-        </button>
+        
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0">
+          <a
+            id="whatsapp-support-banner-link"
+            href="https://wa.me/2347063759080?text=Hello%20M2%20Platform%20Admin%2C%20I%20have%20an%20inquiry%20regarding%20my%20order."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-md shrink-0 cursor-pointer font-brand"
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.528 1.977 14.053.953 11.42.953c-5.44 0-9.866 4.372-9.87 9.802 0 1.63.463 3.224 1.34 4.63l-.997 3.645 3.754-.976zm11.554-6.425c-.279-.14-1.653-.816-1.909-.91-.256-.092-.443-.14-.63.14-.186.279-.722.91-.885 1.096-.163.186-.326.21-.605.07-.279-.14-1.18-.435-2.247-1.386-.83-.741-1.39-1.655-1.553-1.934-.163-.28-.018-.43.122-.57.126-.125.279-.326.419-.49.14-.163.186-.279.279-.465.093-.186.047-.35-.023-.49-.07-.14-.63-1.517-.862-2.076-.226-.543-.454-.47-.63-.478-.163-.008-.35-.01-.535-.01-.186 0-.489.07-.745.35-.256.279-.978.955-.978 2.33 0 1.375 1.002 2.702 1.142 2.887.14.186 1.973 3.01 4.778 4.22.667.288 1.188.46 1.594.59.67.214 1.28.184 1.762.112.538-.08 1.653-.676 1.886-1.33.233-.655.233-1.217.163-1.33-.07-.112-.256-.184-.535-.326z"/>
+            </svg>
+            <span>WhatsApp Support</span>
+          </a>
+
+          <button
+            id="trigger-cart-sidebar"
+            onClick={() => setIsCartOpen(true)}
+            className="bg-white hover:bg-slate-50 text-indigo-900 px-6 py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2.5 shadow-md relative shrink-0 cursor-pointer font-brand"
+          >
+            <ShoppingCart className="w-5 h-5 text-sky-600" />
+            <span>My Cart</span>
+            {totalCartItems > 0 && (
+              <span className="absolute -top-2.5 -right-2.5 bg-red-500 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center font-bold shadow-md animate-pulse">
+                {totalCartItems}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {bookingMessage && (
@@ -429,10 +474,10 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
                 </div>
 
                 <form id="booking-submit-form" onSubmit={handleCheckout} className="space-y-4">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Book Order Details</h4>
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider font-brand">Book Order Details</h4>
                   
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Customer Name</label>
+                    <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Customer Name *</label>
                     <input 
                       id="cart-customer-name"
                       type="text"
@@ -440,19 +485,60 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
                       placeholder="Your name for the booking"
                       value={bookingName}
                       onChange={(e) => setBookingName(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none bg-slate-50/50"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Contact Phone</label>
+                      <input 
+                        id="cart-customer-phone"
+                        type="tel"
+                        placeholder="Phone number"
+                        value={bookingPhone}
+                        onChange={(e) => setBookingPhone(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none bg-slate-50/50"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">WhatsApp No *</label>
+                      <input 
+                        id="cart-customer-whatsapp"
+                        type="tel"
+                        required
+                        placeholder="WhatsApp phone"
+                        value={bookingWhatsApp}
+                        onChange={(e) => setBookingWhatsApp(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none bg-slate-50/50"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Email Address *</label>
+                    <input 
+                      id="cart-customer-email"
+                      type="email"
+                      required
+                      placeholder="name@company.com"
+                      value={bookingEmail}
+                      onChange={(e) => setBookingEmail(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none bg-slate-50/50"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Contact Phone</label>
-                    <input 
-                      id="cart-customer-phone"
-                      type="tel"
-                      placeholder="Phone number"
-                      value={bookingPhone}
-                      onChange={(e) => setBookingPhone(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                    <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Current Delivery Address *</label>
+                    <textarea 
+                      id="cart-customer-address"
+                      required
+                      rows={2}
+                      placeholder="Full physical delivery address"
+                      value={bookingAddress}
+                      onChange={(e) => setBookingAddress(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none bg-slate-50/50 resize-none"
                     />
                   </div>
 
@@ -552,6 +638,29 @@ export default function UserStorefront({ products, orders, onBookOrder, defaultN
           </div>
         )}
       </div>
+
+      {/* Floating Real-time WhatsApp Support Button */}
+      <a
+        id="whatsapp-support-floating-btn"
+        href="https://wa.me/2347063759080?text=Hello%20M2%20Platform%20Admin%2C%20I%20have%20an%20inquiry%20regarding%20my%20order."
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-3 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 font-brand font-bold text-xs cursor-pointer group"
+        title="Chat with Admin on WhatsApp"
+      >
+        <span className="relative flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-100 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+        </span>
+        <svg 
+          viewBox="0 0 24 24" 
+          className="w-4 h-4 fill-current"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.528 1.977 14.053.953 11.42.953c-5.44 0-9.866 4.372-9.87 9.802 0 1.63.463 3.224 1.34 4.63l-.997 3.645 3.754-.976zm11.554-6.425c-.279-.14-1.653-.816-1.909-.91-.256-.092-.443-.14-.63.14-.186.279-.722.91-.885 1.096-.163.186-.326.21-.605.07-.279-.14-1.18-.435-2.247-1.386-.83-.741-1.39-1.655-1.553-1.934-.163-.28-.018-.43.122-.57.126-.125.279-.326.419-.49.14-.163.186-.279.279-.465.093-.186.047-.35-.023-.49-.07-.14-.63-1.517-.862-2.076-.226-.543-.454-.47-.63-.478-.163-.008-.35-.01-.535-.01-.186 0-.489.07-.745.35-.256.279-.978.955-.978 2.33 0 1.375 1.002 2.702 1.142 2.887.14.186 1.973 3.01 4.778 4.22.667.288 1.188.46 1.594.59.67.214 1.28.184 1.762.112.538-.08 1.653-.676 1.886-1.33.233-.655.233-1.217.163-1.33-.07-.112-.256-.184-.535-.326z"/>
+        </svg>
+        <span>Support Chat</span>
+      </a>
 
     </div>
   );

@@ -8,7 +8,14 @@ interface WholesalerPanelProps {
   products: Product[];
   orders: Order[];
   onAddProduct: (product: Omit<Product, 'id' | 'isApproved' | 'createdAt'>) => void;
-  onBookOrder: (items: OrderItem[], name: string, phone: string) => void;
+  onBookOrder: (
+    items: OrderItem[],
+    name: string,
+    phone: string,
+    whatsapp?: string,
+    address?: string,
+    email?: string
+  ) => void;
   onRefresh?: () => void;
 }
 
